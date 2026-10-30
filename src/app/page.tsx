@@ -271,7 +271,10 @@ export default function Landing() {
           <div className="lp-brand">
             <span className="brand-dot" /> CommentFlow
           </div>
-          <span>Feito com a API oficial da Meta. Use dentro dos termos.</span>
+          <span>
+            Feito com a API oficial da Meta. Use dentro dos termos. ·{" "}
+            <Link href="/privacidade" style={{ color: "var(--muted)" }}>Privacidade</Link>
+          </span>
         </div>
       </footer>
     </div>

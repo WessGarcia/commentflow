@@ -16,12 +16,16 @@ mão. A Render sobe o app + um Postgres gerenciado a partir do `render.yaml`.
    - `META_REDIRECT_URI` = `https://SUA-URL.onrender.com/api/auth/meta/callback`
    - `IG_VERIFY_TOKEN` e `ENCRYPTION_KEY` já vêm **gerados** — copie o valor do
      `IG_VERIFY_TOKEN` para usar no webhook da Meta.
-5. Configure na Meta (ver [GUIA.md](GUIA.md), Partes 2 e 5):
-   - **Facebook Login → Valid OAuth Redirect URI:**
+5. Configure o app na Meta seguindo o [GUIA.md](GUIA.md) da Etapa 3 em diante,
+   usando `https://SUA-URL.onrender.com` como endereço público:
+   - **Login do Facebook → URIs de redirecionamento válidos:**
      `https://SUA-URL.onrender.com/api/auth/meta/callback`
-   - **Webhook callback:** `https://SUA-URL.onrender.com/api/webhooks/instagram`,
-     verify token = `IG_VERIFY_TOKEN`, assine `comments` e `messages`.
-6. Abra `https://SUA-URL.onrender.com/app` e clique em **Conectar Instagram**.
+   - **Webhook:** `https://SUA-URL.onrender.com/api/webhooks/instagram`,
+     token = `IG_VERIFY_TOKEN`, assine `comments`, `messages` e
+     `messaging_postbacks`.
+   - **Publique o app** (modo Ao vivo); sem isso a Meta não manda os avisos.
+6. Abra `https://SUA-URL.onrender.com/app/configuracoes` e clique em
+   **Conectar Instagram**.
 
 > Vantagem sobre o notebook: fica **ligado 24/7** e tem **URL pública fixa** (não
 > precisa de túnel).

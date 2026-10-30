@@ -13,7 +13,7 @@ services:
           name: commentflow-db
           property: connectionString
       - key: GRAPH_API_VERSION
-        value: v21.0
+        value: v26.0
       # Gerados automaticamente pela Render (copie o IG_VERIFY_TOKEN no painel
       # para usar no webhook da Meta):
       - key: IG_VERIFY_TOKEN

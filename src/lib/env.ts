@@ -22,7 +22,7 @@ export const env = {
     return process.env.IG_USER_ID ?? "";
   },
   get graphVersion() {
-    return process.env.GRAPH_API_VERSION ?? "v21.0";
+    return process.env.GRAPH_API_VERSION ?? "v26.0";
   },
   get encryptionKey() {
     return process.env.ENCRYPTION_KEY ?? "";

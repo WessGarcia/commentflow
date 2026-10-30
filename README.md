@@ -61,7 +61,7 @@ migrations e serve com URL pública fixa). Passo a passo e custos em
 | `IG_ACCESS_TOKEN`   | **Opcional** (fallback). Depois do OAuth não é necessário.                  |
 | `IG_USER_ID`        | **Opcional** (fallback). Depois do OAuth não é necessário.                  |
 | `ENCRYPTION_KEY`    | Criptografa os tokens no banco (AES-256-GCM). Gere com `openssl rand -base64 32`. |
-| `GRAPH_API_VERSION` | Versão da Graph API (padrão `v21.0`).                                       |
+| `GRAPH_API_VERSION` | Versão da Graph API (padrão `v26.0`).                                       |
 | `DATABASE_URL`      | No Docker é definido automaticamente; só importa pra rodar sem Docker.      |
 
 ## ⚙️ Pré-requisitos na Meta (API oficial)

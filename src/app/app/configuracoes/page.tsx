@@ -12,6 +12,7 @@ const GUIA = "https://github.com/gabrieltabarkiewicz/commentflow/blob/main/docs/
 function avisoMeta(meta?: string) {
   if (!meta) return null;
   if (meta.startsWith("conectado:")) return { ok: true, texto: `${meta.split(":")[1] ?? "1"} conta(s) conectada(s).` };
+  if (meta.startsWith("sem-avisos:")) return { ok: false, texto: "Conta conectada, mas a Meta recusou ligar os avisos da Página. Confira se você é administrador da Página e conecte de novo." };
   return { ok: false, texto: `Não foi possível conectar: ${meta.replace(/^erro:/, "")}.` };
 }
 

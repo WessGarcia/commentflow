@@ -88,9 +88,25 @@ export async function GET(req: NextRequest) {
     const pages = pagesJson.data ?? [];
 
     let connected = 0;
+    let semAvisos = 0;
     for (const page of pages) {
       const ig = page.instagram_business_account;
       if (!ig?.id || !page.access_token) continue;
+
+      // 4) subscribe the Page to this app; without it Meta sends no webhooks
+      const subRes = await fetch(
+        `https://graph.facebook.com/${v}/${page.id}/subscribed_apps?` +
+          new URLSearchParams({
+            subscribed_fields: "feed,messages,messaging_postbacks",
+            access_token: page.access_token,
+          }),
+        { method: "POST" },
+      );
+      if (!subRes.ok) {
+        semAvisos++;
+        console.error("subscribed_apps falhou", page.id, await subRes.text());
+      }
+
       const token = encryptSecret(page.access_token);
       await prisma.account.upsert({
         where: { igUserId: ig.id },
@@ -104,9 +120,10 @@ export async function GET(req: NextRequest) {
       connected++;
     }
 
+    if (connected === 0) return home(req, "erro:sem-conta-ig-business");
     return home(
       req,
-      connected > 0 ? `conectado:${connected}` : "erro:sem-conta-ig-business",
+      semAvisos > 0 ? `sem-avisos:${connected}` : `conectado:${connected}`,
     );
   } catch (e) {
     return home(req, `erro:${String(e)}`);

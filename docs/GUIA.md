@@ -1,229 +1,327 @@
-# Guia passo a passo — ligar e testar o CommentFlow
+# Guia passo a passo: ligar o CommentFlow na API oficial do Instagram
 
-Feito pra quem nunca fez isso. Siga na ordem. Tempo estimado: 30–45 min
-(a maior parte é configurar o app na Meta).
+Para quem nunca fez isso. Siga na ordem, sem pular etapas. Tempo estimado:
+**40 a 60 minutos**, quase todo gasto no site da Meta.
 
-Legenda: 🖥️ = no seu computador · 🌐 = no site da Meta · ✅ = checagem.
+Legenda: 🖥️ no seu computador · 🌐 no site da Meta · 📱 no app do Instagram ·
+✅ checagem antes de seguir.
 
----
-
-## Parte 0 — O que você vai precisar
-
-1. Uma conta **Instagram Profissional** (Business ou Creator).
-2. Uma **Página do Facebook** ligada a esse Instagram.
-3. **Docker Desktop** instalado (é o jeito mais fácil: sobe o app + o banco
-   com um comando). Baixe em https://www.docker.com/products/docker-desktop/
-4. O código do CommentFlow na sua máquina.
-
-> Por que Docker? Porque você não precisa instalar Node nem Postgres na mão —
-> o Docker cuida de tudo.
+> As telas da Meta mudam de nome e de lugar com frequência. Se um botão não
+> estiver exatamente onde o guia diz, procure pelo nome parecido no menu da
+> esquerda do app. O que importa é o que cada etapa precisa deixar pronto.
 
 ---
 
-## Parte 1 — Deixar o Instagram pronto 🌐
-
-1. No app do Instagram: **Configurações → Conta → Mudar para conta
-   profissional** (Business ou Creator).
-2. Ligue essa conta a uma **Página do Facebook** (o próprio Instagram pede isso
-   no processo, ou faça pelo Facebook em "Configurações da Página → Instagram").
-
-✅ Você tem: um Instagram profissional + uma Página do Facebook conectada.
-
----
-
-## Parte 2 — Criar o app na Meta 🌐
-
-1. Entre em https://developers.facebook.com/ e faça login.
-2. **Meus apps → Criar app**. Tipo: escolha **"Outro" → Empresa** (Business).
-3. Dentro do app, adicione os **produtos** (menu lateral "Adicionar produto"):
-   - **Instagram**
-   - **Webhooks**
-   - **Login do Facebook para Empresas** (Facebook Login for Business)
-4. Em **Configurações → Básico**, copie o **ID do app** e a
-   **Chave secreta do app** (App Secret). Guarde — vão no `.env`.
-
-✅ Você tem: App ID e App Secret.
-
-> Deixe essa aba da Meta aberta — você volta nela na Parte 5.
-
----
-
-## Parte 3 — Gerar as chaves locais 🖥️
-
-Abra o terminal (PowerShell) na pasta do projeto e gere dois valores aleatórios:
-
-Token de verificação do webhook (qualquer string; use este gerador):
-
-```bash
-node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
-```
-
-Chave de criptografia dos tokens:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-```
-
-Copie os dois resultados — já já colamos no `.env`.
-
----
-
-## Parte 4 — Configurar o `.env` 🖥️
-
-1. Na pasta do projeto, copie o exemplo:
-
-```bash
-copy .env.example .env
-```
-
-2. Abra o `.env` num editor e preencha:
+## Como a peça se encaixa (leia uma vez)
 
 ```
-META_APP_ID="cole aqui o ID do app"
-META_APP_SECRET="cole aqui a chave secreta"
-IG_VERIFY_TOKEN="cole aqui o primeiro valor gerado"
-ENCRYPTION_KEY="cole aqui o segundo valor gerado"
+Alguém comenta "quero" no seu post
+        │
+        ▼
+Meta avisa o CommentFlow  ──►  endereço público do seu painel
+        │                         /api/webhooks/instagram
+        ▼
+CommentFlow responde o comentário e manda o direct
+usando o acesso que você deu no botão "Conectar Instagram"
 ```
 
-O `META_REDIRECT_URI` a gente preenche na Parte 5 (depois de ter o túnel).
-Deixe `IG_ACCESS_TOKEN` e `IG_USER_ID` vazios (vamos conectar pelo OAuth).
+Ou seja, a Meta precisa de três coisas suas:
+
+1. **Um app na Meta**: é a "chave" que permite ao CommentFlow falar com o
+   Instagram.
+2. **Um endereço público com https**: é por onde a Meta avisa o CommentFlow de
+   cada comentário. `localhost` não serve, porque só existe no seu computador.
+3. **Sua autorização**: o botão **Conectar Instagram** no painel.
 
 ---
 
-## Parte 5 — Expor seu computador pra internet (túnel) 🖥️🌐
+## Etapa 0: o painel já está no ar 🖥️
 
-A Meta precisa "alcançar" seu computador por um endereço público (https). Um
-túnel faz isso. Opção simples: **cloudflared**.
+Antes de começar, o painel precisa abrir em `http://localhost:3000/app` (com
+Docker: `docker compose up --build`; veja o [README](../README.md)). Se ele
+abre, siga.
 
-1. Suba o app primeiro (Parte 6) OU deixe o túnel pronto agora apontando pra
-   porta 3000. Com o cloudflared instalado:
+✅ Você vê o painel do CommentFlow com o menu Início, Automações, Comentários,
+Contatos, Palavras-chaves e Configurações.
+
+---
+
+## Etapa 1: deixar o Instagram pronto 📱
+
+1. **Conta profissional.** No app do Instagram: *Configurações → Tipo de conta
+   e ferramentas → Mudar para conta profissional*. Pode ser **Empresa** ou
+   **Criador de conteúdo**.
+2. **Ligada a uma Página do Facebook.** *Configurações → Central de Contas*, ou
+   pelo Facebook em *Página → Configurações → Contas vinculadas → Instagram*.
+   Você precisa ser **administrador** dessa Página.
+3. **Perfil público.** A Meta não avisa comentários de contas privadas.
+4. **Liberar o acesso às mensagens.** Sem isso, a resposta no comentário
+   funciona, mas o direct não sai:
+   *Configurações → Mensagens e respostas ao story → Controles de mensagens →
+   Ferramentas conectadas → ative "Permitir acesso às mensagens"*.
+
+✅ Instagram profissional, público, ligado a uma Página que você administra, com
+"Permitir acesso às mensagens" ativado.
+
+---
+
+## Etapa 2: ter um endereço público com https 🖥️
+
+Escolha **um** dos caminhos:
+
+### Caminho A: túnel no seu computador (bom para testar)
+
+1. Instale o **cloudflared**:
+   https://developers.cloudflare.com/cloudflared/downloads/
+2. Com o painel ligado, rode num terminal:
 
 ```bash
 cloudflared tunnel --url http://localhost:3000
 ```
 
-2. Ele imprime uma URL tipo `https://algo-aleatorio.trycloudflare.com`.
-   **Essa é a sua URL pública.** Copie.
+3. Ele mostra um endereço parecido com
+   `https://palavras-aleatorias.trycloudflare.com`. **Esse é o seu endereço
+   público.** Deixe esse terminal aberto: se fechar, o endereço some.
 
-3. No `.env`, preencha:
+> ⚠️ O endereço gratuito **muda toda vez** que você reinicia o túnel, e o
+> computador precisa ficar ligado para as respostas saírem. Quando mudar, refaça
+> as Etapas 4, 6 e 7 com o endereço novo. Para uso de verdade, prefira o
+> Caminho B.
 
-```
-META_REDIRECT_URI="https://algo-aleatorio.trycloudflare.com/api/auth/meta/callback"
-```
+### Caminho B: servidor na nuvem (para uso diário)
 
-4. 🌐 Na Meta, em **Login do Facebook para Empresas → Configurações**, no campo
-   **URIs de redirecionamento do OAuth válidos**, cole a mesma URL:
-   `https://algo-aleatorio.trycloudflare.com/api/auth/meta/callback`
+Siga o [DEPLOY.md](DEPLOY.md) (Render, 1 clique). Você recebe um endereço fixo,
+tipo `https://commentflow-xxxx.onrender.com`, que fica no ar 24 horas.
 
-5. 🌐 Na Meta, em **Webhooks** (ou Instagram → Configuração de webhooks):
-   - **URL de callback:** `https://algo-aleatorio.trycloudflare.com/api/webhooks/instagram`
-   - **Token de verificação:** o mesmo `IG_VERIFY_TOKEN` do `.env`
-   - Clique em **Verificar e salvar**.
-   - Depois, **assine (subscribe)** os campos **`comments`** e **`messages`**.
+✅ Abrindo `SEU-ENDERECO/app` no navegador, aparece o painel.
 
-> ⚠️ A URL grátis do cloudflared **muda** cada vez que você reinicia o túnel. Se
-> mudar, atualize nos 3 lugares (`.env`, redirect do OAuth, URL do webhook) e
-> reinicie o app. Pra algo fixo, use um túnel com domínio reservado (ngrok pago
-> ou cloudflare tunnel nomeado).
-
-✅ Você tem: URL pública nos 3 lugares e o `.env` completo.
+> **Daqui em diante, "SEU-ENDERECO" é esse endereço público, sem barra no
+> final.** E use o painel **sempre por ele**, não por `localhost`: assim a tela
+> Configurações já mostra os links certos para copiar, e o botão Conectar
+> Instagram funciona (ele precisa começar e terminar no mesmo endereço).
 
 ---
 
-## Parte 6 — Ligar o projeto 🖥️
+## Etapa 3: criar o app na Meta 🌐
 
-Na pasta do projeto, com o Docker Desktop aberto:
+1. Entre em https://developers.facebook.com/ com o **mesmo Facebook que
+   administra a Página**. Se for a primeira vez, aceite virar desenvolvedor.
+2. **Meus apps → Criar app.**
+   - Nome: algo como `CommentFlow - SuaMarca`.
+   - Caso de uso: **Outro** → tipo **Empresa** (Business).
+   - Se pedir um portfólio empresarial, escolha o seu ou crie um.
+3. No painel do app, em **Adicionar produtos**, adicione:
+   - **Login do Facebook para Empresas**
+   - **Webhooks**
+   - **Instagram** (API do Instagram com Login do Facebook)
+
+✅ O app aparece em "Meus apps", com os três produtos no menu da esquerda.
+
+---
+
+## Etapa 4: configurações básicas do app 🌐
+
+Em **Configurações do app → Básico**:
+
+| Campo | O que colocar |
+|---|---|
+| ID do app | Copie e guarde (vai no `.env`) |
+| Chave secreta do app | Clique em "Mostrar", copie e guarde (vai no `.env`). **Nunca mostre isso a ninguém.** |
+| Domínios do app | Só o domínio, sem `https://` (ex.: `palavras-aleatorias.trycloudflare.com`) |
+| URL da Política de Privacidade | `SEU-ENDERECO/privacidade` |
+| URL de exclusão de dados | `SEU-ENDERECO/privacidade` (a mesma página explica como apagar) |
+| Categoria | Negócios e páginas (ou a mais próxima) |
+| Ícone do app | Qualquer imagem quadrada 1024×1024 (pode ser a logo da sua marca) |
+
+Clique em **Salvar alterações**.
+
+✅ Você tem o **ID do app** e a **Chave secreta** guardados, e a página
+`SEU-ENDERECO/privacidade` abre no navegador.
+
+---
+
+## Etapa 5: colocar as chaves no CommentFlow 🖥️
+
+Gere dois códigos aleatórios. No terminal, na pasta do projeto:
 
 ```bash
-docker compose up --build
+node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ```
 
-Na primeira vez demora um pouco (baixa e monta tudo). Quando aparecer que o
-servidor está pronto:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
 
-- **Site (landing):** http://localhost:3000
-- **Painel:** http://localhost:3000/app
+O primeiro é o **token do webhook**; o segundo, a **chave de criptografia**.
 
-✅ Abra o painel e veja a tela com "Visão geral", "Conexão" e "Fluxos".
+Abra o arquivo `.env` na pasta do projeto (se não existir, copie o
+`.env.example` com o nome `.env`) e preencha:
 
-> Parar: `Ctrl + C` no terminal. Ligar de novo: `docker compose up` (sem
-> `--build`, a não ser que você mude o código).
+```
+META_APP_ID="o ID do app"
+META_APP_SECRET="a chave secreta do app"
+META_REDIRECT_URI="SEU-ENDERECO/api/auth/meta/callback"
+IG_VERIFY_TOKEN="o primeiro código gerado"
+ENCRYPTION_KEY="o segundo código gerado"
+```
+
+Deixe `IG_ACCESS_TOKEN` e `IG_USER_ID` **vazios**: o acesso vem pelo botão
+Conectar Instagram.
+
+> **Não perca a `ENCRYPTION_KEY`.** Os acessos ficam guardados criptografados
+> com ela. Se trocar, é só conectar o Instagram de novo.
+
+**Reinicie o painel** para ele ler o `.env` novo (Docker: `Ctrl + C` e
+`docker compose up` de novo). No Caminho B (Render), preencha esses campos em
+*Environment* e salve; a Render reinicia sozinha.
+
+✅ No painel, em **Configurações → App na Meta**, as linhas "ID do app",
+"Chave secreta" e "Token do webhook" aparecem como **Pronto**, e em
+**Segurança** "Acessos criptografados" também.
 
 ---
 
-## Parte 7 — Conectar sua conta 🖥️
+## Etapa 6: liberar o retorno do login 🌐
 
-1. No painel (`/app`), clique em **Conectar Instagram**.
-2. Faça login no Facebook e **autorize** as permissões.
-3. Você volta pro painel com a mensagem verde "conta(s) conectada(s)".
+Em **Login do Facebook para Empresas → Configurações**:
 
-✅ Em "Conexão" aparece sua conta com a tag **conectado**.
+1. Em **URIs de redirecionamento do OAuth válidos**, cole:
+   `SEU-ENDERECO/api/auth/meta/callback`
+   (no painel, em *Configurações → Webhook → Volta do login do Facebook*, tem o
+   link pronto com botão **Copiar**).
+2. Deixe ligados **Login no OAuth do cliente** e **Login do OAuth na Web**.
+3. **Salvar alterações.**
+
+✅ O endereço aparece na lista de redirecionamentos válidos, **idêntico** ao do
+`.env`, letra por letra.
 
 ---
 
-## Parte 8 — Criar um fluxo com botões 🖥️
+## Etapa 7: ligar os avisos (webhook) 🌐
 
-1. Em "Fluxos", clique **+ Novo fluxo**.
+Em **Webhooks**, no seletor do topo escolha **Instagram** e clique em
+**Assinar este objeto** (ou *Configurar*):
+
+1. **URL de retorno de chamada:** `SEU-ENDERECO/api/webhooks/instagram`
+   (no painel: *Configurações → Webhook → Endereço do webhook → Copiar*).
+2. **Token de verificação:** o mesmo `IG_VERIFY_TOKEN` do `.env`.
+3. Clique em **Verificar e salvar**. O painel precisa estar ligado nessa hora.
+4. Na lista de campos, clique em **Assinar** nestes três:
+   - `comments`: os comentários
+   - `messages`: os directs e os toques nos botões
+   - `messaging_postbacks`: toques em botões de alguns aparelhos
+
+✅ A Meta aceitou o endereço (sem erro vermelho) e os três campos aparecem como
+assinados.
+
+---
+
+## Etapa 8: publicar o app 🌐
+
+A Meta **só manda os avisos de comentário quando o app está publicado**.
+
+1. No topo do painel do app, mude **Modo do app** de *Desenvolvimento* para
+   **Ao vivo** (em algumas telas: menu **Publicar**).
+2. Se a Meta apontar algo faltando, normalmente é da Etapa 4 (política de
+   privacidade, exclusão de dados, ícone ou categoria). Complete e tente de
+   novo.
+
+> **Precisa de "Análise do app" (App Review)?** Para usar na **sua própria
+> conta**, não. Sem a análise, as permissões funcionam para quem tem função no
+> app (administrador, desenvolvedor ou testador), e você é o administrador. A
+> análise só é necessária se você quiser conectar contas de **outras
+> pessoas** que não têm função no seu app.
+>
+> Se for conectar um Instagram administrado por **outro Facebook**, adicione
+> esse Facebook em **Funções do app → Funções → Adicionar pessoas** como
+> administrador e peça para a pessoa aceitar o convite.
+
+✅ O topo do painel do app mostra **Ao vivo** (ou "Publicado").
+
+---
+
+## Etapa 9: conectar o Instagram no painel 🖥️
+
+1. Abra **`SEU-ENDERECO/app/configuracoes`** (pelo endereço público, não pelo
+   localhost).
+2. Clique em **Conectar Instagram**.
+3. Entre com o Facebook que administra a Página e, nas telas seguintes:
+   - selecione **a Página e a conta do Instagram** que vão usar o CommentFlow;
+   - deixe **todas as permissões marcadas** e clique em **Salvar / Continuar**.
+4. Você volta para Configurações com a mensagem verde **"1 conta(s)
+   conectada(s)"**.
+
+Nesse momento o CommentFlow também liga os avisos da sua Página para o app. Se
+aparecer o aviso *"Conta conectada, mas a Meta recusou ligar os avisos da
+Página"*, confira se você é administrador da Página e clique em **Conectar
+Instagram** de novo.
+
+✅ Em **Configurações → Instagram** aparece o seu `@usuario` com a etiqueta
+**Conectada**, e no canto da barra lateral o cartão Instagram mostra a conta.
+
+---
+
+## Etapa 10: criar a primeira automação 🖥️
+
+1. Menu **Automações → Nova automação**.
 2. Preencha:
-   - **Nome:** Teste
-   - **Gatilho:** Todos os posts
-   - **Condição:** Palavra-chave → escreva `quero` (uma por linha)
-   - **Respostas públicas:** `Te mandei no direct! 💜`
-   - **Mensagem no Direct:** escolha **Fluxo com botões (quick replies)**
-3. Em "Passos do fluxo", clique **+ Adicionar passo** e monte, por exemplo:
-   - **Passo 1 (Início):** "Oi! Quer receber o link?"
-     - Botão: `Quero!` → aponta pra **Passo 2**
-     - Botão: `Agora não` → aponta pra **Passo 3**
-   - **Passo 2:** "Aqui está: https://seu-link.com"
-   - **Passo 3:** "Tranquilo! Qualquer coisa é só comentar. 👋"
+   - **Nome da automação:** `Teste`
+   - **Onde:** Todos os posts
+   - **Quando:** Comentar a palavra-chave
+   - **Palavras-chave:** `quero` (uma por linha)
+   - **Resposta pública no comentário:** `Te mandei no direct! 💜`
+   - **Mensagem no direct:**
+     - **Uma mensagem**: um texto só, por exemplo o link; ou
+     - **Conversa com botões**: passos com botões (até 20 letras cada). Cada
+       botão leva a outro passo ou **encerra**.
+3. Confira na **Prévia**, ao lado, o que o seguidor vai ver.
+4. Deixe **Ativa** ligada e clique em **Criar automação**.
 
-   (Adicione os passos primeiro; depois volte nos botões e selecione o destino.)
-4. Deixe **Ativo** marcado e clique **Criar fluxo**.
-
-✅ O fluxo aparece na lista como "ativo · fluxo de 3 passos".
+✅ A automação aparece na lista como **Ativa**, e a palavra aparece em
+**Palavras-chaves**.
 
 ---
 
-## Parte 9 — Testar de verdade 🖥️📱
+## Etapa 11: testar de verdade 📱
 
-1. Com **outra conta** (peça pra um amigo, ou use uma conta sua diferente),
-   comente a palavra **quero** num post da sua conta profissional.
-2. Em alguns segundos:
-   - aparece a **resposta pública** no comentário;
-   - chega a **DM do Passo 1** com os botões **Quero!** e **Agora não**.
-3. Toque em **Quero!** → chega a mensagem do **Passo 2** (o link).
-4. No painel, em **Atividade recente**, aparecem os registros
-   (`public_reply`, `dm_flow`, `dm_step`).
+1. Com **outra conta** do Instagram (de um amigo, ou uma segunda conta sua),
+   comente `quero` num post da conta conectada.
+2. Em poucos segundos:
+   - a **resposta pública** aparece embaixo do comentário;
+   - chega o **direct** na outra conta;
+   - se for conversa com botões, toque num botão e veja chegar o próximo passo.
+3. No painel:
+   - **Comentários** mostra o comentário como **Respondido**;
+   - **Contatos** mostra quem comentou;
+   - **Início** atualiza os números.
 
-✅ Se os 4 itens acima acontecerem, está tudo funcionando.
-
----
-
-## Parte 10 — Se algo não funcionar 🔧
-
-- **O webhook não verifica (erro ao salvar na Meta):** o `IG_VERIFY_TOKEN` do
-  `.env` tem que ser idêntico ao digitado na Meta, e o app precisa estar no ar
-  (Parte 6) com o túnel ativo apontando pra porta 3000.
-- **Erro de "redirect URI" ao conectar:** a URL em **Login do Facebook →
-  redirecionamentos válidos** tem que ser **exatamente** igual à do
-  `META_REDIRECT_URI` (mesma URL do túnel, terminando em
-  `/api/auth/meta/callback`).
-- **Os botões não respondem:** confira se você assinou o campo **`messages`** no
-  webhook (não só `comments`).
-- **A resposta pública sai, mas a DM não chega:** veja se as permissões
-  `instagram_manage_messages` estão concedidas e se a conta que comentou pode
-  receber DM. Em modo de desenvolvedor, só contas adicionadas como testadoras
-  interagem.
-- **"Banco indisponível" no painel:** rode `docker compose up` de novo; o
-  serviço do Postgres precisa estar de pé (o Compose cuida disso).
-- **A URL do túnel mudou:** atualize nos 3 lugares (`.env`, redirect do OAuth,
-  webhook) e reinicie o app.
+✅ Os três itens do passo 2 aconteceram. Está tudo ligado. 🎉
 
 ---
 
-## Observação honesta
+## Se algo não funcionar 🔧
 
-Este projeto foi escrito com cuidado, mas **não foi executado/testado** no
-ambiente onde foi criado. A primeira execução (Parte 6) é o teste de verdade.
-Se aparecer qualquer erro no terminal ou no navegador, **copie a mensagem** —
-ela diz exatamente o que ajustar.
+| O que acontece | O que fazer |
+|---|---|
+| "Verificar e salvar" do webhook dá erro | O painel precisa estar ligado e abrindo em `SEU-ENDERECO/app`. O token na Meta tem que ser **idêntico** ao `IG_VERIFY_TOKEN`. Depois de mudar o `.env`, reinicie o painel. |
+| Erro de "URL bloqueada" ou "redirect_uri" ao conectar | O endereço da Etapa 6 tem que ser igual, letra por letra, ao `META_REDIRECT_URI` do `.env`. |
+| Volta com "estado-invalido" | Você clicou em Conectar pelo `localhost`. Abra o painel pelo **endereço público** e tente de novo. |
+| Volta com "sem-conta-ig-business" | O Instagram não é profissional, não está ligado à Página, ou você não marcou a Página na tela de permissões. Revise a Etapa 1 e conecte de novo. |
+| Comentam e nada aparece em Comentários | Os avisos não estão chegando. Confira: app **Ao vivo** (Etapa 8), campo `comments` assinado (Etapa 7), túnel ainda aberto e com o mesmo endereço, perfil **público**. Depois clique em Conectar Instagram de novo. |
+| Aparece em Comentários como **Com erro** | O comentário chegou, mas a Meta recusou a resposta. Conecte o Instagram de novo, aceitando **todas** as permissões. |
+| A resposta pública sai, o direct não | Ative **"Permitir acesso às mensagens"** (Etapa 1, item 4). Cada comentário aceita **um** direct automático, e só se o comentário tiver até 7 dias. |
+| Os botões do direct não respondem | Assine os campos `messages` e `messaging_postbacks` (Etapa 7). |
+| Funciona para você, mas não para outra conta que comenta | Com o app sem Análise, a Meta às vezes só entrega para contas com função no app. Para testar, adicione a conta como **Testador do Instagram** em *Funções do app*. |
+| O endereço do túnel mudou | Refaça as Etapas 4 (domínio e privacidade), 5 (`META_REDIRECT_URI`), 6 e 7 com o endereço novo e reinicie o painel. |
+| Painel mostra "O banco de dados não respondeu" | O banco de dados não está ligado. Com Docker, rode `docker compose up` de novo. |
+
+---
+
+## Regras da Meta que valem para todo mundo
+
+- **Um direct automático por comentário.**
+- **Comentários com mais de 7 dias** não recebem direct automático.
+- **Depois que a pessoa responde ou toca num botão**, a conversa fica aberta por
+  24 horas para os próximos passos.
+- Use mensagens úteis e que a pessoa pediu. Spam leva a bloqueio da conta pela
+  Meta.
