@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function home(req: NextRequest, meta: string) {
-  const url = new URL("/app", req.nextUrl.origin);
+  const url = new URL("/app/configuracoes", req.nextUrl.origin);
   url.searchParams.set("meta", meta);
   return new Response(null, {
     status: 302,

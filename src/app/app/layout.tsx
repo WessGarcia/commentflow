@@ -1,36 +1,17 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import { Caveat, Plus_Jakarta_Sans } from "next/font/google";
+import "./painel.css";
+import { PainelShell } from "./shell";
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="shell">
-      <aside className="sidebar">
-        <div className="sidebar-brand">
-          <span className="brand-dot" /> CommentFlow
-        </div>
-        <nav className="sidebar-nav">
-          <a href="#visao">Visão geral</a>
-          <a href="#conexao">Conexão</a>
-          <a href="#fluxos">Fluxos</a>
-          <a href="#atividade">Atividade</a>
-        </nav>
-        <Link className="sidebar-back" href="/">
-          ← Voltar ao site
-        </Link>
-      </aside>
+// As fontes do painel antigo da Mandei: Plus Jakarta Sans no texto e Caveat no banner.
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", weight: ["400", "500", "600", "700", "800"], display: "swap" });
+const caveat = Caveat({ subsets: ["latin"], variable: "--font-caveat", weight: ["500"], display: "swap" });
 
-      <div className="panel-main">
-        <header className="topbar">
-          <strong>Painel</strong>
-          <a className="btn btn-sm" href="/api/auth/meta/login">
-            Conectar Instagram
-          </a>
-        </header>
-        <div className="panel-content">{children}</div>
-      </div>
-    </div>
-  );
+export const metadata: Metadata = {
+  title: "CommentFlow · Painel",
+  description: "Automação de comentários e direct do Instagram.",
+};
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return <PainelShell fontes={`${jakarta.variable} ${caveat.variable}`}>{children}</PainelShell>;
 }

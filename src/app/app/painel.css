@@ -1,0 +1,388 @@
+@import "tailwindcss";
+@source "../../";
+
+/*
+ * Painel do CommentFlow: o design do painel antigo da Mandei (19/09), tema
+ * claro, roxo #7C3AED e Plus Jakarta Sans. Tudo fica dentro de `.painel`
+ * (a casca em ./shell.tsx), para não mexer nas cores da landing.
+ * Regra: nas telas, nunca escreva cor fixa. Use as variáveis.
+ */
+.painel {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-hand: var(--font-caveat), cursive;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --bg-primary: #f6f7fb;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-hover: #fafafd;
+  --border: #eceef5;
+  --border-strong: #e6e9f2;
+  --text-primary: #15162b;
+  --text-secondary: #4b5163;
+  --text-muted: #6b7280;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-dim: #f2ecff;
+  --accent-text: #7c3aed;
+  --success: #12b76a;
+  --success-text: #0f7a57;
+  --warning: #f5a524;
+  --warning-text: #b77414;
+  --danger: #ef4444;
+  --danger-text: #d64545;
+  --info: #3b82f6;
+  --track: #f0f1f6;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --glow-accent: 0 4px 12px rgba(124, 58, 237, 0.28);
+
+  --m-text-body: #3a4054;
+  --m-text-dim: #8a90a6;
+  --m-text-faint: #9aa1b4;
+  --m-text-placeholder: #a3aabf;
+  --m-accent-deep: #5b21b6;
+  --m-tint: #f1ecff;
+  --m-surface: #f8f5ff;
+  --m-panel: #f7f4ff;
+  --m-panel-border: #eae2fc;
+  --m-panel-text: #5c5675;
+  --m-surface-subtle: #fafbfd;
+  --m-divider: #f1f2f7;
+  --m-divider-soft: #f4f5f9;
+  --m-row-border: #eef0f6;
+  --m-dashed: #dcd3f5;
+  --m-dashed-bg: #fbfaff;
+  --m-plan-border: #efeafb;
+  --m-plan-bg: #fcfaff;
+  --m-success-bg: #e9f9f1;
+  --m-success-alt: #0f9d6e;
+  --m-success-alt-bg: #e8f7f0;
+  --m-warning-bg: #fef3e2;
+  --m-danger-bg: #fdecec;
+  --m-danger-border: #fbdcdc;
+  --m-danger-soft: #fef4f4;
+  --m-info-text: #2f6ba8;
+  --m-info-bg: #e6f0fb;
+  --m-pink: #ec4899;
+  --m-pink-text: #b03072;
+  --m-pink-bg: #fdeaf3;
+  --m-gold: #f5a524;
+  --m-neutral-bg: #f2f4f8;
+  --m-neutral-text: #4b5163;
+  --m-focus: #ddd1ff;
+  --m-disabled-bg: #edeaf6;
+  --m-disabled-text: #9b93b8;
+  --m-grad-ig: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
+  --m-grad-brand: linear-gradient(140deg, #8b5cf6, #6d28d9);
+  --m-grad-hero: linear-gradient(100deg, #6d28d9 0%, #7c3aed 42%, #a855f7 72%, #d946a8 100%);
+  --m-shadow-primary-md: 0 6px 16px rgba(124, 58, 237, 0.28);
+  --m-shadow-hero-btn: 0 8px 20px rgba(49, 10, 90, 0.2);
+  --m-scrim: rgba(23, 16, 54, 0.34);
+  --m-selected-border: #d9cbfb;
+
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  color-scheme: light;
+}
+
+.painel input,
+.painel textarea,
+.painel select,
+.painel button {
+  font-family: inherit;
+}
+.painel input::placeholder,
+.painel textarea::placeholder {
+  color: var(--m-text-placeholder);
+}
+.painel input:focus,
+.painel textarea:focus,
+.painel select:focus {
+  outline: 2px solid var(--m-focus);
+  outline-offset: 0;
+}
+.painel button:focus-visible,
+.painel a:focus-visible {
+  outline: 2px solid var(--m-focus);
+  outline-offset: 2px;
+}
+.painel a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.painel a:hover {
+  color: var(--accent-hover);
+}
+.painel ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.painel ::-webkit-scrollbar-thumb {
+  background: #dee2ec;
+  border-radius: 8px;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.82); }
+}
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.rise-in { animation: riseIn 0.22s ease; }
+
+/* cartão branco do produto */
+.m-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+/* título de página */
+.m-h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+.m-sub {
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+/* título de card */
+.m-h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+/* botão primário */
+.m-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 18px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--m-shadow-primary-md);
+  white-space: nowrap;
+  transition: background 0.12s ease;
+}
+.painel a.m-btn,
+.m-btn:hover {
+  color: #fff;
+}
+.m-btn:hover {
+  background: var(--accent-hover);
+}
+.m-btn:disabled {
+  background: var(--m-disabled-bg);
+  color: var(--m-disabled-text);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+/* botão secundário (branco) */
+.m-btn-2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 11px 16px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: var(--shadow-card);
+}
+.painel a.m-btn-2,
+.m-btn-2:hover {
+  color: var(--text-primary);
+}
+.m-btn-2:hover {
+  background: var(--bg-hover);
+}
+/* botão destrutivo suave */
+.m-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--m-danger-border);
+  border-radius: 11px;
+  padding: 10px 14px;
+  background: var(--m-danger-soft);
+  color: var(--danger-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+/* campos */
+.m-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  padding: 0 13px;
+  background: var(--bg-card);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.m-textarea {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  padding: 12px 13px;
+  background: var(--bg-card);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  resize: vertical;
+}
+.m-select {
+  height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  padding: 0 36px 0 13px;
+  background-color: var(--bg-card);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238A90A6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9.5 12 15 18 9.5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  appearance: none;
+  cursor: pointer;
+}
+.m-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--m-neutral-text);
+  margin-bottom: 7px;
+}
+.m-hint {
+  font-size: 11.5px;
+  color: var(--m-text-dim);
+  margin-top: 6px;
+  line-height: 1.45;
+}
+.m-row:hover {
+  background: var(--bg-hover);
+}
+.m-nav:hover {
+  background: #f7f7fb;
+}
+/* toggle */
+.m-toggle {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  border: 0;
+  background: #e4e7ef;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease;
+  flex: 0 0 auto;
+}
+.m-toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.2);
+  transition: transform 0.15s ease;
+}
+.m-toggle[data-on="true"] {
+  background: var(--accent);
+}
+.m-toggle[data-on="true"]::after {
+  transform: translateX(16px);
+}
+.m-toggle.lg {
+  width: 42px;
+  height: 24px;
+}
+.m-toggle.lg::after {
+  width: 18px;
+  height: 18px;
+}
+.m-toggle.lg[data-on="true"]::after {
+  transform: translateX(18px);
+}
+.m-pretty {
+  text-wrap: pretty;
+}
+
+/* Início: as grades quebram quando a área útil fica estreita */
+@media (max-width: 1500px) {
+  .m-inicio-colunas { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+  .m-inicio-colunas > :last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 1240px) {
+  .m-inicio-metricas { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .m-inicio-colunas { grid-template-columns: minmax(0, 1fr) !important; }
+  .m-inicio-colunas > :last-child { grid-column: auto; }
+}
+/* Editor de automação: formulário à esquerda, prévia à direita (como o modo simples da Mandei).
+   Em tela estreita a prévia vai para cima, porque é ela que explica o formulário. */
+.m-editor-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+@media (max-width: 1040px) {
+  .m-editor-grid { grid-template-columns: minmax(0, 1fr); }
+  .m-editor-grid > :last-child { order: -1; position: static !important; }
+}
+
+/* Configurações: em tela estreita, a linha vira rótulo em cima e o controle embaixo */
+@media (max-width: 1100px) {
+  .m-canal-linha { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* ---------- Celular: abaixo de 760 px o painel vira app de bolso ---------- */
+.m-so-mobile { display: none !important; }
+@media (max-width: 760px) {
+  .m-so-desktop { display: none !important; }
+  .m-so-mobile { display: flex !important; }
+  .painel .m-topo { height: 60px !important; padding: 0 14px !important; gap: 10px !important; }
+  .painel .m-topo-busca { max-width: none !important; height: 40px !important; }
+  .painel .m-conteudo { padding: 4px 14px 92px !important; }
+  .painel .m-conteudo .grid:not(.m-grid-fixa) { grid-template-columns: minmax(0, 1fr) !important; }
+  .painel .m-conteudo .grid.m-metricas { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  .painel .m-conteudo .m-inicio-colunas > :last-child { grid-column: auto; }
+  .painel .m-inicio-banner { padding: 22px 20px !important; }
+  .painel .m-inicio-banner > :first-child > :nth-child(2) { font-size: 24px !important; }
+  .painel .m-inicio-banner-arte { display: none !important; }
+  .painel .m-conteudo h1 { font-size: 22px !important; }
+}
+/* barra de navegação de baixo */
+.m-nav-baixo {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  height: 64px; padding: 0 6px env(safe-area-inset-bottom);
+  background: var(--bg-card); border-top: 1px solid var(--border);
+  box-sizing: content-box;
+}
+.m-nav-baixo a, .m-nav-baixo button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font: inherit; font-size: 10.5px; font-weight: 600; color: var(--text-muted); background: transparent; border: 0; padding: 0; position: relative; height: 64px;
+}
+.m-nav-baixo .on { color: var(--accent); font-weight: 700; }
+.m-folha { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bg-card); border-radius: 20px 20px 0 0; padding: 10px 12px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(20, 20, 40, .18); animation: m-sobe .18s ease; }
+@keyframes m-sobe { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
