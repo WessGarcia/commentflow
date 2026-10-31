@@ -198,6 +198,7 @@ export function PainelShell({ fontes, comSenha, children }: { fontes: string; co
                   <Settings size={16} style={{ color: "var(--m-text-dim)" }} /> Configurações
                 </Link>
                 {/* link comum: recarrega a landing com os estilos dela */}
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- recarga completa de propósito */}
                 <a href="/" className="flex items-center gap-2.5 rounded-lg" style={{ padding: "9px 11px", fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
                   <ArrowLeft size={16} style={{ color: "var(--m-text-dim)" }} /> Voltar ao site
                 </a>
@@ -253,6 +254,7 @@ export function PainelShell({ fontes, comSenha, children }: { fontes: string; co
             <Link href="/app/ajuda" onClick={() => setFolhaMais(false)} className="flex items-center rounded-xl" style={{ gap: 12, padding: "12px 10px", fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
               <HelpCircle size={20} strokeWidth={1.8} /> Central de ajuda
             </Link>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- recarga completa: a landing tem estilos próprios */}
             <a href="/" className="flex items-center rounded-xl" style={{ gap: 12, padding: "12px 10px", fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
               <ArrowLeft size={20} strokeWidth={1.8} /> Voltar ao site
             </a>

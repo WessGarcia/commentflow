@@ -21,3 +21,10 @@
 next-env.d.ts
 *.tsbuildinfo
 /coverage
+
+# ferramentas de agente: ficam só no computador de quem desenvolve (docs/harness.md)
+/.claude/
+/.agents/
+/skills-lock.json
+/.graphifyignore
+/graphify-out/

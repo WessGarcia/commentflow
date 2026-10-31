@@ -10,6 +10,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "eslint .",
+    "lint:typed": "eslint -c eslint.typed.config.mjs src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "verify:rules": "node scripts/verify-quality-rules.mjs ./eslint-rules/index.cjs",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run verify:rules",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
@@ -36,7 +42,10 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^10.14.0",
+    "eslint-config-next": "^16.4.3",
     "prisma": "^6.2.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^5.0.5"
   }
 }

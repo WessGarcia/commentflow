@@ -188,7 +188,6 @@ function ConstrutorInterno({ fluxo }: { fluxo: FlowDTO | null }) {
       if (c.type === "select" && c.selected) setSel(c.id);
       if (c.type === "remove" && c.id !== ID_GATILHO) removerNo(c.id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mudarNo]);
 
   const onEdgesChange = useCallback((ch: EdgeChange[]) => {
