@@ -3,6 +3,7 @@ import { env } from "@/lib/env";
 import { verifySignature } from "@/lib/signature";
 import { processComment } from "@/lib/processComment";
 import { processMessaging } from "@/lib/processMessaging";
+import { registrarMensagem } from "@/lib/conversas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,13 +36,39 @@ interface CommentChange {
 
 interface MessagingEvent {
   sender?: { id?: string };
+  recipient?: { id?: string };
+  timestamp?: number;
   message?: {
     mid?: string;
     text?: string;
     is_echo?: boolean;
+    is_deleted?: boolean;
     quick_reply?: { payload?: string };
+    attachments?: Array<{ type?: string }>;
   };
-  postback?: { payload?: string };
+  postback?: { payload?: string; title?: string; mid?: string };
+}
+
+/** O que a mensagem diz, em texto: anexos viram uma etiqueta. */
+function textoDe(ev: MessagingEvent) {
+  if (ev.message?.text) return ev.message.text;
+  if (ev.postback?.title) return ev.postback.title;
+  const tipo = ev.message?.attachments?.[0]?.type;
+  if (tipo) return { image: "📷 Foto", video: "🎥 Vídeo", audio: "🎤 Áudio", share: "🔗 Compartilhamento", story_mention: "📸 Mencionou você no story", ig_reel: "🎬 Reel" }[tipo] ?? "📎 Anexo";
+  return null;
+}
+
+/** Guarda a mensagem na conversa: as da pessoa e as que você mandou pelo app. */
+async function guardarMensagem(ev: MessagingEvent) {
+  const texto = textoDe(ev);
+  const mid = ev.message?.mid ?? ev.postback?.mid;
+  if (!texto || ev.message?.is_deleted) return;
+  const quando = ev.timestamp ? new Date(ev.timestamp) : undefined;
+  if (ev.message?.is_echo) {
+    if (ev.recipient?.id) await registrarMensagem({ igsid: ev.recipient.id, direcao: "saida", origem: "instagram", texto, mid, quando });
+    return;
+  }
+  if (ev.sender?.id) await registrarMensagem({ igsid: ev.sender.id, direcao: "entrada", origem: "pessoa", texto, mid, quando });
 }
 
 interface WebhookPayload {
@@ -95,7 +122,8 @@ export async function POST(req: NextRequest) {
 
     // Messaging (quick replies / postbacks)
     for (const event of entry.messaging ?? []) {
-      if (event.message?.is_echo) continue; // ignore our own outbound echoes
+      tasks.push(guardarMensagem(event).catch((e) => console.error("guardarMensagem error", e)));
+      if (event.message?.is_echo) continue; // our own outbound echoes don't trigger flows
       const qrPayload =
         event.message?.quick_reply?.payload ?? event.postback?.payload;
       if (!qrPayload) continue;

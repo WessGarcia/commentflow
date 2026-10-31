@@ -57,6 +57,10 @@ model CommentEvent {
   processed    Boolean  @default(false)
   raw          Json?
   receivedAt   DateTime @default(now())
+  /// moderação pelo painel
+  ocultado       Boolean  @default(false)
+  resolvido      Boolean  @default(false)
+  respostaManual String?
 }
 
 /// Idempotency ledger for one-shot webhook events (e.g. messaging mids).
@@ -75,4 +79,73 @@ model ActivityLog {
   flowId    String?
   detail    Json?
   createdAt DateTime @default(now())
+}
+
+/// Quem interagiu com a conta (comentou ou mandou direct). igsid = o ID que a
+/// Meta dá à pessoa (o mesmo no comentário e no direct).
+model Contact {
+  id            String    @id @default(cuid())
+  igsid         String    @unique
+  username      String?
+  nome          String?
+  email         String?
+  telefone      String?
+  notas         String?
+  tags          String[]  @default([])
+  /// coluna no quadro de Contatos
+  etapa         String    @default("novo")
+  /// "atendimento" (você está respondendo) ou "resolvida"
+  status        String    @default("resolvida")
+  /// bloqueado: some das listas e a automação ignora
+  bloqueado     Boolean   @default(false)
+  /// última mensagem da pessoa no direct: abre a janela de 24 h da Meta
+  ultimaEntrada DateTime?
+  ultimaMsg     DateTime?
+  lidoEm        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  mensagens     Message[]
+
+  @@index([ultimaMsg])
+}
+
+/// Uma mensagem da conversa. direcao: "entrada" (da pessoa) ou "saida".
+/// origem: "pessoa", "comentario" (o comentário que abriu a conversa),
+/// "automacao", "humano" (enviada pelo painel) ou "instagram" (pelo app).
+model Message {
+  id        String   @id @default(cuid())
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactId String
+  mid       String?  @unique
+  direcao   String
+  origem    String
+  texto     String
+  createdAt DateTime @default(now())
+
+  @@index([contactId, createdAt])
+}
+
+/// O sino do painel: o que merece aviso. "chave" impede aviso repetido
+/// quando a Meta reentrega o mesmo evento.
+model Notificacao {
+  id        String   @id @default(cuid())
+  /// mensagem | comentario | fluxo | reconexao | contato
+  tipo      String
+  titulo    String
+  destaque  String?
+  texto     String
+  link      String?
+  /// novo | concluido | atencao
+  etiqueta  String?
+  chave     String?  @unique
+  lida      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// Preferências do painel guardadas no banco (ex.: primeiros passos dispensados).
+model Configuracao {
+  chave String @id
+  valor String
 }

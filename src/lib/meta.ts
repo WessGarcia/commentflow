@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { avisarReconexao } from "@/lib/notificacoes";
 
 const base = () => `https://graph.facebook.com/${env.graphVersion}`;
 
@@ -30,6 +31,7 @@ async function graphPost(
       body: JSON.stringify({ ...payload, access_token: accessToken }),
     });
     const body = await res.json().catch(() => null);
+    if ((body as { error?: { code?: number } } | null)?.error?.code === 190) void avisarReconexao();
     return { ok: res.ok, status: res.status, body };
   } catch (error) {
     return { ok: false, status: 0, body: { error: String(error) } };
@@ -88,4 +90,44 @@ export function sendPrivateReply(
   quickReplies?: QuickReply[],
 ): Promise<GraphResult> {
   return sendDm(creds, { comment_id: commentId }, text, quickReplies);
+}
+
+/**
+ * Hide / unhide a comment on your own media.
+ * POST /{ig-comment-id}?hide=true|false  (needs instagram_manage_comments)
+ */
+export function hideComment(creds: IgCredentials, commentId: string, hide: boolean): Promise<GraphResult> {
+  return graphPost(`${base()}/${commentId}`, creds.accessToken, { hide });
+}
+
+export interface MediaInfo {
+  legenda: string;
+  imagem: string | null;
+  link: string | null;
+  curtidas: number;
+  comentarios: number;
+  quando: string | null;
+}
+
+/** The post a comment belongs to (caption, thumbnail, counts). Null when the API refuses. */
+export async function getMedia(creds: IgCredentials, mediaId: string): Promise<MediaInfo | null> {
+  try {
+    const url = `${base()}/${mediaId}?` + new URLSearchParams({
+      fields: "caption,media_type,media_url,thumbnail_url,permalink,like_count,comments_count,timestamp",
+      access_token: creds.accessToken,
+    });
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const m = (await r.json()) as { caption?: string; media_type?: string; media_url?: string; thumbnail_url?: string; permalink?: string; like_count?: number; comments_count?: number; timestamp?: string };
+    return {
+      legenda: m.caption ?? "",
+      imagem: (m.media_type === "VIDEO" ? m.thumbnail_url : m.media_url) ?? null,
+      link: m.permalink ?? null,
+      curtidas: m.like_count ?? 0,
+      comentarios: m.comments_count ?? 0,
+      quando: m.timestamp ?? null,
+    };
+  } catch {
+    return null;
+  }
 }

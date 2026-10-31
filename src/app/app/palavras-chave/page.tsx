@@ -18,7 +18,7 @@ export default async function PalavrasPage() {
   return (
     <div className="rise-in">
       <PageHeader titulo="Palavras-chaves" sub="As palavras que, comentadas, disparam a resposta e o direct.">
-        <Link href="/app/fluxos?novo=1" className="m-btn"><Plus size={17} /> Nova automação</Link>
+        <Link href="/app/fluxos?modelos=1" className="m-btn"><Plus size={17} /> Nova automação</Link>
       </PageHeader>
 
       <div className="grid m-metricas" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 18, marginBottom: 20 }}>

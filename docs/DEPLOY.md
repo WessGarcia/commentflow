@@ -14,6 +14,8 @@ mão. A Render sobe o app + um Postgres gerenciado a partir do `render.yaml`.
 4. No painel da Render, em **Environment**, preencha:
    - `META_APP_ID` e `META_APP_SECRET` (do seu app na Meta)
    - `META_REDIRECT_URI` = `https://SUA-URL.onrender.com/api/auth/meta/callback`
+   - `PAINEL_SENHA` = uma senha forte, só sua. É ela que você digita para entrar
+     no painel; sem ela o painel fica trancado.
    - `IG_VERIFY_TOKEN` e `ENCRYPTION_KEY` já vêm **gerados** — copie o valor do
      `IG_VERIFY_TOKEN` para usar no webhook da Meta.
 5. Configure o app na Meta seguindo o [GUIA.md](GUIA.md) da Etapa 3 em diante,

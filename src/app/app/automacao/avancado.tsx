@@ -1,29 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Activity, GitBranch, PauseCircle, Pencil, Plus, Trash2, X, Zap } from "lucide-react";
-import type { DmFlow } from "@/lib/flowTypes";
-import { descreverFluxo } from "@/lib/fluxoTexto";
-import { Card, Metrica, PageHeader, Pill, Tile, Toggle, Vazio, useConfirmar } from "../_ui/ui";
-import { fmt } from "../_ui/fmt";
+import { ChevronRight, Plus, Trash2, Wand2, Workflow, X } from "lucide-react";
+import type { DmFlow, FlowDTO } from "@/lib/flowTypes";
+import { simplesDoFluxo } from "@/lib/modelos";
+import { Card, Pill, Toggle, useConfirmar } from "../_ui/ui";
 
 type Scope = "ALL_POSTS" | "SPECIFIC_POST";
 type MatchType = "ANY" | "KEYWORD";
 type DmMode = "simple" | "flow";
-
-export interface FlowDTO {
-  id: string;
-  name: string;
-  enabled: boolean;
-  scope: Scope;
-  mediaId: string | null;
-  matchType: MatchType;
-  keywords: string[];
-  publicReplies: string[];
-  dmMessage: string | null;
-  dmFlow: DmFlow | null;
-}
 
 interface QRDraft {
   title: string;
@@ -90,34 +77,25 @@ function newStepId(steps: StepDraft[]) {
 
 const passoNome = (i: number) => (i === 0 ? "Início" : `Passo ${i + 1}`);
 
-/** Lista, editor e prévia das automações. Tudo que muda algo passa por /api/flows. */
-export function Automacoes({ initialFlows, execucoes, abrirNovo, editarId }: { initialFlows: FlowDTO[]; execucoes: Record<string, number>; abrirNovo: boolean; editarId: string | null }) {
+/**
+ * MODO AVANÇADO: a conversa com quantos passos e botões quiser. Abre por
+ * ?avancado=1 (nova) ou ?avancado=1&editar=id. Salva em /api/flows.
+ */
+export function EditorAvancado({ fluxo }: { fluxo: FlowDTO | null }) {
   const router = useRouter();
   const [confirmar, modalConfirmar] = useConfirmar();
-  const [flows, setFlows] = useState<FlowDTO[]>(initialFlows);
-  const [draft, setDraft] = useState<Draft | null>(() => {
-    if (abrirNovo) return emptyDraft();
-    const f = editarId ? initialFlows.find((x) => x.id === editarId) : undefined;
-    return f ? toDraft(f) : null;
-  });
+  const [draft, setDraft] = useState<Draft>(() => (fluxo ? toDraft(fluxo) : emptyDraft()));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const cabeNoSimples = fluxo ? simplesDoFluxo(fluxo) !== null : true;
 
-  const ativos = flows.filter((f) => f.enabled).length;
-  const totalExec = flows.reduce((a, f) => a + (execucoes[f.id] ?? 0), 0);
-
-  function abrir(d: Draft) {
-    setError(null);
-    setDraft(d);
-  }
   function fechar() {
-    setDraft(null);
-    setError(null);
-    router.replace("/app/fluxos", { scroll: false });
+    router.push("/app/fluxos");
+    router.refresh();
   }
 
   // --- passos do fluxo com botões ---
-  const mudarPassos = (fn: (steps: StepDraft[]) => StepDraft[]) => setDraft((d) => (d ? { ...d, steps: fn(d.steps) } : d));
+  const mudarPassos = (fn: (steps: StepDraft[]) => StepDraft[]) => setDraft((d) => ({ ...d, steps: fn(d.steps) }));
   const addStep = () => mudarPassos((s) => [...s, { id: newStepId(s), text: "", quickReplies: [] }]);
   const removeStep = (i: number) =>
     mudarPassos((s) => {
@@ -132,7 +110,6 @@ export function Automacoes({ initialFlows, execucoes, abrirNovo, editarId }: { i
   const removeQR = (i: number, j: number) => mudarPassos((s) => s.map((p, idx) => (idx === i ? { ...p, quickReplies: p.quickReplies.filter((_, jdx) => jdx !== j) } : p)));
 
   async function salvar() {
-    if (!draft) return;
     if (!draft.name.trim()) return setError("Dê um nome à automação.");
     if (draft.matchType === "KEYWORD" && lines(draft.keywords).length === 0) return setError("Escreva ao menos uma palavra-chave.");
     if (draft.dmMode === "flow") {
@@ -178,8 +155,6 @@ export function Automacoes({ initialFlows, execucoes, abrirNovo, editarId }: { i
         setError(typeof b?.error === "string" ? b.error : "Não deu para salvar. Confira os campos e tente de novo.");
         return;
       }
-      const saved: FlowDTO = await res.json();
-      setFlows((prev) => (prev.some((f) => f.id === saved.id) ? prev.map((f) => (f.id === saved.id ? saved : f)) : [saved, ...prev]));
       fechar();
     } catch {
       setError("Sem conexão com o servidor. Tente de novo.");
@@ -188,50 +163,30 @@ export function Automacoes({ initialFlows, execucoes, abrirNovo, editarId }: { i
     }
   }
 
-  async function alternar(f: FlowDTO) {
-    const res = await fetch(`/api/flows/${f.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !f.enabled }) });
-    if (res.ok) {
-      const saved: FlowDTO = await res.json();
-      setFlows((prev) => prev.map((x) => (x.id === saved.id ? saved : x)));
-    }
-  }
-
-  async function excluir(f: FlowDTO) {
-    const ok = await confirmar({ titulo: `Excluir "${f.name}"?`, texto: "A automação para de responder na hora. Isso não pode ser desfeito.", confirmar: "Excluir", perigo: true });
+  async function excluir() {
+    if (!draft.id) return;
+    const ok = await confirmar({ titulo: `Excluir "${draft.name}"?`, texto: "A automação para de responder na hora. Isso não pode ser desfeito.", confirmar: "Excluir", perigo: true });
     if (!ok) return;
-    const res = await fetch(`/api/flows/${f.id}`, { method: "DELETE" });
-    if (res.ok) {
-      setFlows((prev) => prev.filter((x) => x.id !== f.id));
-      if (draft?.id === f.id) fechar();
-    }
+    const res = await fetch(`/api/flows/${draft.id}`, { method: "DELETE" });
+    if (res.ok) fechar();
   }
 
   return (
-    <div className="rise-in">
-      <PageHeader titulo="Automações" sub="Comentou a palavra-chave, recebeu a resposta e o direct.">
-        {!draft && (
-          <button type="button" className="m-btn" onClick={() => abrir(emptyDraft())}>
-            <Plus size={17} /> Nova automação
-          </button>
+    <div className="rise-in" style={{ marginTop: 18 }}>
+      <div className="flex items-center m-simples-topo" style={{ gap: 12, marginBottom: 16 }}>
+        <Link href="/app/fluxos" className="m-so-desktop" style={{ fontSize: 14, fontWeight: 600, color: "var(--text-muted)" }}>Automações</Link>
+        <ChevronRight size={16} className="m-so-desktop" style={{ color: "var(--m-text-placeholder)" }} />
+        <span style={{ fontSize: 14.5, fontWeight: 700 }}>{draft.id ? "Editar automação" : "Nova automação"}</span>
+        <Pill tom="azul"><Workflow size={12} /> Modo avançado</Pill>
+        {cabeNoSimples && (
+          <Link href={draft.id ? `/app/automacao?editar=${draft.id}` : "/app/automacao"} className="m-btn-2 ml-auto" style={{ padding: "8px 13px", fontSize: 13 }}>
+            <Wand2 size={15} /> <span className="m-so-desktop">Modo simples</span>
+          </Link>
         )}
-      </PageHeader>
-
-      <div className="grid m-metricas" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 18, marginBottom: 20 }}>
-        <Metrica variante="horizontal" rotulo="Automações ativas" valor={fmt(ativos)} icone={<Zap size={20} strokeWidth={1.8} />} />
-        <Metrica variante="horizontal" tom="verde" rotulo="Execuções" valor={fmt(totalExec)} icone={<Activity size={20} strokeWidth={1.8} />} sub="respostas e directs enviados" />
-        <Metrica variante="horizontal" tom="ambar" rotulo="Pausadas" valor={fmt(flows.length - ativos)} icone={<PauseCircle size={20} strokeWidth={1.8} />} />
       </div>
 
-      {draft && (
         <div className="m-editor-grid" style={{ marginBottom: 20 }}>
           <Card>
-            <div className="flex items-center" style={{ marginBottom: 18 }}>
-              <h2 className="m-h2">{draft.id ? "Editar automação" : "Nova automação"}</h2>
-              <button type="button" onClick={fechar} aria-label="fechar" className="ml-auto flex border-0 bg-transparent cursor-pointer" style={{ color: "var(--m-text-dim)" }}>
-                <X size={20} />
-              </button>
-            </div>
-
             <div className="flex flex-col" style={{ gap: 18 }}>
               <div>
                 <label className="m-label" htmlFor="af-nome">Nome da automação</label>
@@ -340,42 +295,17 @@ export function Automacoes({ initialFlows, execucoes, abrirNovo, editarId }: { i
               <div className="flex items-center" style={{ gap: 10 }}>
                 <button type="button" className="m-btn" disabled={saving} onClick={salvar}>{saving ? "Salvando..." : draft.id ? "Salvar alterações" : "Criar automação"}</button>
                 <button type="button" className="m-btn-2" disabled={saving} onClick={fechar}>Cancelar</button>
+                {draft.id && (
+                  <button type="button" className="m-btn-danger ml-auto" disabled={saving} onClick={excluir}>
+                    <Trash2 size={14} /> Excluir
+                  </button>
+                )}
               </div>
             </div>
           </Card>
 
           <Previa d={draft} />
         </div>
-      )}
-
-      <Card pad={0} className="overflow-hidden">
-        {flows.length === 0 && !draft && (
-          <Vazio>Nenhuma automação ainda. Clique em “Nova automação” e escolha a palavra-chave e a mensagem que ela entrega.</Vazio>
-        )}
-        {flows.map((f, i) => (
-          <div key={f.id} className="m-row flex items-center flex-wrap" style={{ gap: 14, padding: "16px 20px", borderTop: i ? "1px solid var(--m-divider-soft)" : "none" }}>
-            <Tile tom="roxo" size={42}><GitBranch size={20} strokeWidth={1.8} /></Tile>
-            <div className="flex-1 min-w-0" style={{ minWidth: 200 }}>
-              <div className="flex items-center" style={{ gap: 9 }}>
-                <span className="truncate" style={{ fontSize: 14.5, fontWeight: 700 }}>{f.name}</span>
-                <Pill tom={f.enabled ? "verde" : "ambar"} dot>{f.enabled ? "Ativo" : "Pausado"}</Pill>
-              </div>
-              <div className="truncate" style={{ fontSize: 12.5, color: "var(--m-text-dim)", marginTop: 3 }}>{descreverFluxo(f)}</div>
-            </div>
-            <div className="flex items-center shrink-0" style={{ gap: 6, fontSize: 12.5, color: "var(--m-text-dim)" }}>
-              <Activity size={15} style={{ color: "var(--m-text-placeholder)" }} />
-              <span style={{ fontWeight: 700, color: "var(--m-neutral-text)" }}>{fmt(execucoes[f.id] ?? 0)}</span> execuções
-            </div>
-            <Toggle on={f.enabled} onChange={() => alternar(f)} rotulo={f.enabled ? "pausar" : "ativar"} />
-            <button type="button" onClick={() => abrir(toDraft(f))} className="m-btn-2" style={{ padding: "8px 12px", fontSize: 12.5 }}>
-              <Pencil size={14} /> Editar
-            </button>
-            <button type="button" onClick={() => excluir(f)} aria-label={`excluir ${f.name}`} className="flex items-center justify-center cursor-pointer" style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid var(--m-danger-border)", background: "var(--m-danger-soft)", color: "var(--danger-text)" }}>
-              <Trash2 size={15} />
-            </button>
-          </div>
-        ))}
-      </Card>
       {modalConfirmar}
     </div>
   );

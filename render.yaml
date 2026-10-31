@@ -21,6 +21,9 @@ services:
       - key: ENCRYPTION_KEY
         generateValue: true
       # Preencha no painel da Render após o deploy:
+      # Senha para entrar no painel (escolha uma; sem ela o painel fica trancado):
+      - key: PAINEL_SENHA
+        sync: false
       - key: META_APP_ID
         sync: false
       - key: META_APP_SECRET

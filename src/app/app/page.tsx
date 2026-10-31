@@ -5,6 +5,8 @@ import { Avatar, Card, LinkSeta, Metrica, Pill, Tile, Vazio } from "./_ui/ui";
 import { fmt } from "./_ui/fmt";
 import { BancoFora } from "./_ui/banco-fora";
 import { ComentariosRecentes, DicaInicio, FiltroPeriodo } from "./inicio-parts";
+import { estadoOnboarding } from "@/lib/onboarding";
+import { OnboardingCard } from "./onboarding-card";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +18,8 @@ export const dynamic = "force-dynamic";
 export default async function Inicio({ searchParams }: { searchParams: Promise<{ periodo?: string }> }) {
   const sp = await searchParams;
   const periodo = ([7, 30, 90] as const).includes(Number(sp.periodo) as Periodo) ? (Number(sp.periodo) as Periodo) : 7;
-  const d = await getInicio(periodo).catch(() => null);
-  if (!d) return <BancoFora />;
+  const [d, onb] = await Promise.all([getInicio(periodo), estadoOnboarding()]).catch(() => [null, null] as const);
+  if (!d || !onb) return <BancoFora />;
 
   const { atual, anterior } = d.metricas;
   const sufixo = `vs. últimos ${periodo} dias`;
@@ -26,6 +28,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
 
   return (
     <div className="flex flex-col rise-in" style={{ gap: 20, paddingTop: 8 }}>
+      {!onb.concluido && !onb.dispensado && <OnboardingCard o={onb} />}
       <div className="relative overflow-hidden flex items-center m-inicio-banner" style={{ borderRadius: 18, padding: "34px 38px", background: "var(--m-grad-hero)", color: "#fff", gap: 28 }}>
         <div className="flex-1 min-w-0">
           <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: ".14em", color: "rgba(255,255,255,.72)" }}>AUTOMAÇÃO NO INSTAGRAM</div>
@@ -34,7 +37,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
             Transforme comentários em conversas e vendas, com automações feitas para o Instagram.
           </div>
           {conectada ? (
-            <Link href={d.fluxos.length ? "/app/fluxos" : "/app/fluxos?novo=1"} className="inline-flex items-center" style={{ marginTop: 20, gap: 9, borderRadius: 12, padding: "13px 20px", background: "#fff", color: "#6D28D9", fontSize: 14.5, fontWeight: 700, boxShadow: "var(--m-shadow-hero-btn)" }}>
+            <Link href={d.fluxos.length ? "/app/fluxos" : "/app/fluxos?modelos=1"} className="inline-flex items-center" style={{ marginTop: 20, gap: 9, borderRadius: 12, padding: "13px 20px", background: "#fff", color: "#6D28D9", fontSize: 14.5, fontWeight: 700, boxShadow: "var(--m-shadow-hero-btn)" }}>
               {d.fluxos.length ? "Ver minhas automações" : "Criar minha primeira automação"} <ArrowRight size={17} />
             </Link>
           ) : (
@@ -101,7 +104,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
                 <MoreHorizontal size={18} style={{ color: "var(--m-text-placeholder)" }} />
               </Link>
             ))}
-            <Link href="/app/fluxos?novo=1" className="flex items-center justify-center" style={{ gap: 8, border: "1px dashed var(--m-dashed)", background: "var(--m-dashed-bg)", borderRadius: 13, padding: 14, fontSize: 13.5, fontWeight: 700, color: "var(--text-muted)" }}>
+            <Link href="/app/fluxos?modelos=1" className="flex items-center justify-center" style={{ gap: 8, border: "1px dashed var(--m-dashed)", background: "var(--m-dashed-bg)", borderRadius: 13, padding: 14, fontSize: 13.5, fontWeight: 700, color: "var(--text-muted)" }}>
               <Plus size={17} style={{ color: "var(--accent)" }} /> Nova automação
             </Link>
           </div>

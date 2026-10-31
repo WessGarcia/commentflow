@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getActiveCredentials } from "@/lib/credentials";
 import { sendDm } from "@/lib/meta";
 import { asDmFlow, buildStepMessage, decodePayload } from "@/lib/flowTypes";
+import { estaBloqueado, registrarEnvio } from "@/lib/conversas";
 
 export interface IncomingMessaging {
   senderId?: string;
@@ -21,6 +22,7 @@ function isUniqueViolation(e: unknown): boolean {
  */
 export async function processMessaging(e: IncomingMessaging) {
   if (!e.senderId || !e.payload) return { skipped: "no-payload" };
+  if (await estaBloqueado(e.senderId)) return { skipped: "blocked-contact" };
 
   const decoded = decodePayload(e.payload);
   if (!decoded || !decoded.stepId) return { skipped: "unknown-payload" };
@@ -53,6 +55,7 @@ export async function processMessaging(e: IncomingMessaging) {
   }
 
   const r = await sendDm(creds, { id: e.senderId }, msg.text, msg.quickReplies);
+  await registrarEnvio(r, e.senderId, msg.text);
   await prisma.activityLog.create({
     data: {
       type: r.ok ? "dm_step" : "dm_step_error",

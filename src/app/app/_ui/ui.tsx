@@ -111,7 +111,7 @@ export function Delta({ atual, anterior, sufixo = "vs. período anterior" }: { a
   return (
     <span className="inline-flex items-center gap-1.5" style={{ fontSize: 12.5 }}>
       <span style={{ color: sobe ? "var(--success)" : "var(--danger-text)", fontWeight: 700 }}>{sobe ? "↑" : "↓"} {Math.abs(d)}%</span>
-      <span style={{ color: "var(--m-text-faint)" }}>{sufixo}</span>
+      <span className="m-delta-sufixo" style={{ color: "var(--m-text-faint)" }}>{sufixo}</span>
     </span>
   );
 }
@@ -128,7 +128,7 @@ export function Metrica({ rotulo, valor, icone, tom = "roxo", atual, anterior, s
   const delta = atual != null && anterior != null ? <Delta atual={atual} anterior={anterior} sufixo={sufixo} /> : null;
   if (variante === "horizontal") {
     return (
-      <Card pad={18} className="flex items-center gap-3.5">
+      <Card pad={18} className="flex items-center gap-3.5 m-metrica-h">
         <Tile tom={tom} size={40}>{icone}</Tile>
         <div className="min-w-0">
           <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-muted)" }}>{rotulo}</div>
@@ -196,7 +196,7 @@ export function Abas({ itens, ativo, onChange }: { itens: { v: string; r: string
 /** Abas sublinhadas (Comentarios, painel do contato). */
 export function AbasLinha({ itens, ativo, onChange }: { itens: { v: string; r: string; n?: number }[]; ativo: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex gap-1" style={{ borderBottom: "1px solid var(--border-strong)" }}>
+    <div className="flex gap-1" style={{ borderBottom: "1px solid var(--border-strong)", overflowX: "auto", overflowY: "hidden", scrollbarWidth: "none" }}>
       {itens.map((t) => {
         const on = t.v === ativo;
         return (
@@ -205,7 +205,7 @@ export function AbasLinha({ itens, ativo, onChange }: { itens: { v: string; r: s
             type="button"
             onClick={() => onChange(t.v)}
             className="border-0 bg-transparent cursor-pointer"
-            style={{ padding: "10px 14px", fontSize: 13.5, fontWeight: 700, color: on ? "var(--accent)" : "var(--text-muted)", borderBottom: on ? "2.5px solid var(--accent)" : "2.5px solid transparent", marginBottom: -1 }}
+            style={{ whiteSpace: "nowrap", flex: "0 0 auto", padding: "10px 14px", fontSize: 13.5, fontWeight: 700, color: on ? "var(--accent)" : "var(--text-muted)", borderBottom: on ? "2.5px solid var(--accent)" : "2.5px solid transparent", marginBottom: -1 }}
           >
             {t.r}{t.n != null ? <span style={{ marginLeft: 6, color: on ? "var(--accent)" : "var(--m-text-faint)" }}>({fmt(t.n)})</span> : null}
           </button>

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { naoLidas } from "@/lib/conversas";
+import { contarNaoLidas } from "@/lib/notificacoes";
 import { env } from "@/lib/env";
 import { isEncryptionEnabled } from "@/lib/crypto";
 import { descreverFluxo } from "@/lib/fluxoTexto";
@@ -19,8 +21,8 @@ export async function contaConectada() {
 }
 
 export async function getStatus() {
-  const [conta, fluxosAtivos] = await Promise.all([contaConectada(), prisma.flow.count({ where: { enabled: true } })]);
-  return { conta: conta?.username ?? null, conectada: Boolean(conta), fluxosAtivos };
+  const [conta, fluxosAtivos, pendentes, notificacoes] = await Promise.all([contaConectada(), prisma.flow.count({ where: { enabled: true } }), naoLidas(), contarNaoLidas()]);
+  return { conta: conta?.username ?? null, conectada: Boolean(conta), fluxosAtivos, naoLidas: pendentes, notificacoes };
 }
 
 /** O que aconteceu com cada comentário, pelo log de ações. */
@@ -97,68 +99,10 @@ export async function getExecucoesPorFluxo() {
   return Object.fromEntries(execs.map((e) => [e.flowId as string, e._count._all])) as Record<string, number>;
 }
 
-export async function getComentarios() {
-  const [rows, flows] = await Promise.all([
-    prisma.commentEvent.findMany({ orderBy: { receivedAt: "desc" }, take: 300 }),
-    prisma.flow.findMany({ select: { id: true, name: true } }),
-  ]);
-  const acoes = await acoesDos(rows.map((r) => r.commentId));
-  const nomeFluxo = new Map(flows.map((f) => [f.id, f.name]));
-  return rows.map((c) => {
-    const s = acoes.get(c.commentId);
-    return {
-      id: c.commentId,
-      username: c.fromUsername ?? "",
-      texto: c.text ?? "",
-      mediaId: c.mediaId,
-      em: c.receivedAt.toISOString(),
-      status: statusDe(c.processed, s),
-      fluxo: s?.flowId ? (nomeFluxo.get(s.flowId) ?? null) : null,
-    };
-  });
-}
-
-export async function getContatos() {
-  const [grupos, ultimos, dmLogs] = await Promise.all([
-    prisma.commentEvent.groupBy({
-      by: ["fromUserId"],
-      where: { fromUserId: { not: null } },
-      _count: { _all: true },
-      _max: { receivedAt: true },
-    }),
-    prisma.commentEvent.findMany({
-      where: { fromUserId: { not: null } },
-      orderBy: { receivedAt: "desc" },
-      select: { fromUserId: true, fromUsername: true, text: true },
-      take: 5000,
-    }),
-    prisma.activityLog.findMany({ where: { type: { in: OK_DM }, commentId: { not: null } }, select: { commentId: true } }),
-  ]);
-  // o @ e o comentário mais recentes de cada pessoa
-  const ultimo = new Map<string, { username: string; texto: string }>();
-  for (const u of ultimos) {
-    if (u.fromUserId && !ultimo.has(u.fromUserId)) ultimo.set(u.fromUserId, { username: u.fromUsername ?? "", texto: u.text ?? "" });
-  }
-  // quem recebeu DM: log da DM -> comentário -> autor
-  const comDm = new Set<string>();
-  const ids = dmLogs.map((l) => l.commentId).filter((x): x is string => Boolean(x));
-  if (ids.length) {
-    const evs = await prisma.commentEvent.findMany({ where: { commentId: { in: ids } }, select: { fromUserId: true } });
-    for (const e of evs) if (e.fromUserId) comDm.add(e.fromUserId);
-  }
-  return grupos
-    .map((g) => {
-      const id = g.fromUserId as string;
-      return {
-        id,
-        username: ultimo.get(id)?.username ?? "",
-        ultimoTexto: ultimo.get(id)?.texto ?? "",
-        comentarios: g._count._all,
-        ultimo: g._max.receivedAt?.toISOString() ?? null,
-        recebeuDm: comDm.has(id),
-      };
-    })
-    .sort((a, b) => (b.ultimo ?? "").localeCompare(a.ultimo ?? ""));
+/** Quando cada automação respondeu pela última vez (ISO). */
+export async function getUltimaPorFluxo() {
+  const ult = await prisma.activityLog.groupBy({ by: ["flowId"], where: { flowId: { not: null }, type: { in: OK_ACOES } }, _max: { createdAt: true } });
+  return Object.fromEntries(ult.map((u) => [u.flowId as string, u._max.createdAt?.toISOString() ?? null])) as Record<string, string | null>;
 }
 
 export async function getPalavras() {
@@ -198,5 +142,6 @@ export async function getConfiguracoes() {
       redirect: env.metaRedirectUri || null,
     },
     criptografia: isEncryptionEnabled(),
+    senhaPainel: Boolean(process.env.PAINEL_SENHA),
   };
 }

@@ -87,6 +87,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
           </div>
           <Linha rotulo="Acessos criptografados" pronto={c.criptografia} dica="ENCRYPTION_KEY no .env. Os acessos do Instagram ficam guardados criptografados no banco." />
           <Linha rotulo="Assinatura dos avisos" pronto={c.meta.appSecret} dica="Aviso da Meta sem assinatura válida é recusado." />
+          <Linha rotulo="Senha do painel" pronto={c.senhaPainel} dica="PAINEL_SENHA no .env. Sem ela, o painel só abre no seu computador (localhost)." />
         </Card>
       </div>
     </div>

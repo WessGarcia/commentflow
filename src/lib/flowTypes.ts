@@ -73,3 +73,32 @@ export function buildStepMessage(
     }));
   return { text, quickReplies };
 }
+
+/** Uma automação como o painel recebe do servidor. */
+export interface FlowDTO {
+  id: string;
+  name: string;
+  enabled: boolean;
+  scope: "ALL_POSTS" | "SPECIFIC_POST";
+  mediaId: string | null;
+  matchType: "ANY" | "KEYWORD";
+  keywords: string[];
+  publicReplies: string[];
+  dmMessage: string | null;
+  dmFlow: DmFlow | null;
+}
+
+export function toFlowDTO(f: Omit<FlowDTO, "dmFlow"> & { dmFlow: unknown }): FlowDTO {
+  return {
+    id: f.id,
+    name: f.name,
+    enabled: f.enabled,
+    scope: f.scope,
+    mediaId: f.mediaId,
+    matchType: f.matchType,
+    keywords: f.keywords,
+    publicReplies: f.publicReplies,
+    dmMessage: f.dmMessage,
+    dmFlow: asDmFlow(f.dmFlow),
+  };
+}

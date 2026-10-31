@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { flowInputSchema } from "@/lib/validation";
+import { notificar } from "@/lib/notificacoes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +34,11 @@ export async function POST(req: NextRequest) {
         ? (data.dmFlow as Prisma.InputJsonValue)
         : Prisma.JsonNull,
     },
+  });
+  await notificar({
+    tipo: "fluxo", titulo: flow.enabled ? "Automação no ar" : "Automação criada", destaque: flow.name,
+    texto: flow.enabled ? "já está respondendo os comentários." : "foi salva desligada.",
+    link: `/app/fluxos?editar=${flow.id}`, etiqueta: "novo", chave: `fluxo:${flow.id}`,
   });
   return Response.json(flow, { status: 201 });
 }

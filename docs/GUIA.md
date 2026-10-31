@@ -163,7 +163,13 @@ META_APP_SECRET="a chave secreta do app"
 META_REDIRECT_URI="SEU-ENDERECO/api/auth/meta/callback"
 IG_VERIFY_TOKEN="o primeiro código gerado"
 ENCRYPTION_KEY="o segundo código gerado"
+PAINEL_SENHA="uma senha forte, só sua"
 ```
+
+A `PAINEL_SENHA` é a senha para entrar no painel. **Ela é obrigatória para
+abrir o painel pelo endereço público**: sem ela, o painel só abre no próprio
+computador (`localhost`) e, de fora, aparece "Painel trancado". Assim ninguém
+que descobrir o seu endereço consegue mexer nas suas automações.
 
 Deixe `IG_ACCESS_TOKEN` e `IG_USER_ID` **vazios**: o acesso vem pelo botão
 Conectar Instagram.
@@ -177,7 +183,8 @@ Conectar Instagram.
 
 ✅ No painel, em **Configurações → App na Meta**, as linhas "ID do app",
 "Chave secreta" e "Token do webhook" aparecem como **Pronto**, e em
-**Segurança** "Acessos criptografados" também.
+**Segurança** "Acessos criptografados" e "Senha do painel" também. Ao abrir
+`SEU-ENDERECO/app`, o painel pede a senha.
 
 ---
 

@@ -4,10 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Home, Zap, Users, Key, MessageCircle, Settings,
-  ChevronLeft, ChevronRight, ChevronDown, Search, HelpCircle, Instagram, ArrowLeft, MoreHorizontal, X,
+  Home, Zap, Users, Key, MessageCircle, MessageSquare, BarChart3, Settings,
+  ChevronLeft, ChevronRight, ChevronDown, Search, HelpCircle, Instagram, ArrowLeft, MoreHorizontal, X, LogOut, Bell,
 } from "lucide-react";
 import { Avatar } from "./_ui/ui";
+import { NotificacoesPainel } from "./_ui/notificacoes";
+import { AjudaPainel } from "./_ui/ajuda";
 
 /**
  * A casca do painel, no desenho do painel antigo da Mandei (19/09): sidebar
@@ -19,24 +21,26 @@ import { Avatar } from "./_ui/ui";
 
 const NAV = [
   { href: "/app", label: "Início", icon: Home },
+  { href: "/app/conversas", label: "Conversas", icon: MessageSquare },
   { href: "/app/fluxos", label: "Automações", icon: Zap },
   { href: "/app/comentarios", label: "Comentários", icon: MessageCircle },
   { href: "/app/contatos", label: "Contatos", icon: Users },
   { href: "/app/palavras-chave", label: "Palavras-chaves", icon: Key },
+  { href: "/app/insights", label: "Insights", icon: BarChart3 },
   { href: "/app/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
-const GUIA_URL = "https://github.com/gabrieltabarkiewicz/commentflow/blob/main/docs/GUIA.md";
+type Status = { conta: string | null; conectada: boolean; fluxosAtivos: number; naoLidas?: number; notificacoes?: number };
 
-type Status = { conta: string | null; conectada: boolean; fluxosAtivos: number };
-
-export function PainelShell({ fontes, children }: { fontes: string; children: React.ReactNode }) {
+export function PainelShell({ fontes, comSenha, children }: { fontes: string; comSenha: boolean; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [st, setSt] = useState<Status | null>(null);
   const [colapsada, setColapsada] = useState(false);
   const [menuConta, setMenuConta] = useState(false);
   const [folhaMais, setFolhaMais] = useState(false);
+  const [gaveta, setGaveta] = useState<"notificacoes" | "ajuda" | null>(null);
+  const fecharGaveta = useCallback(() => setGaveta(null), []);
   const [busca, setBusca] = useState("");
   const buscaRef = useRef<HTMLInputElement>(null);
 
@@ -116,8 +120,14 @@ export function PainelShell({ fontes, children }: { fontes: string; children: Re
                   background: ativo ? "var(--accent-dim)" : "transparent", color: ativo ? "var(--accent)" : "var(--text-muted)",
                 }}
               >
-                <it.icon size={20} strokeWidth={1.8} className="shrink-0" />
+                <span className="relative flex shrink-0">
+                  <it.icon size={20} strokeWidth={1.8} />
+                  {colapsada && it.href === "/app/conversas" && (st?.naoLidas ?? 0) > 0 && <span className="absolute" style={{ top: -3, right: -4, width: 9, height: 9, borderRadius: 9, background: "var(--danger)", border: "2px solid var(--bg-card)" }} />}
+                </span>
                 {!colapsada && <span className="whitespace-nowrap" style={{ fontSize: 14.5, fontWeight: ativo ? 700 : 600 }}>{it.label}</span>}
+                {!colapsada && it.href === "/app/conversas" && (st?.naoLidas ?? 0) > 0 && (
+                  <span className="ml-auto" style={{ background: "var(--danger)", color: "#fff", fontSize: 11.5, fontWeight: 700, borderRadius: 999, padding: "2px 8px" }}>{st!.naoLidas}</span>
+                )}
               </Link>
             );
           })}
@@ -164,9 +174,15 @@ export function PainelShell({ fontes, children }: { fontes: string; children: Re
             <span className="m-so-desktop" style={{ fontSize: 11.5, fontWeight: 600, color: "var(--m-text-faint)", background: "var(--m-divider-soft)", border: "1px solid var(--border)", borderRadius: 6, padding: "3px 7px", whiteSpace: "nowrap" }}>⌘ K</span>
           </form>
           <div className="flex-1 m-so-desktop" />
-          <a href={GUIA_URL} target="_blank" rel="noreferrer" aria-label="Guia passo a passo" title="Guia passo a passo" className="flex items-center justify-center m-so-desktop" style={{ width: 38, height: 38, borderRadius: "50%", color: "var(--m-text-dim)" }}>
+          <button type="button" onClick={() => setGaveta("ajuda")} aria-label="Central de ajuda" title="Central de ajuda" className="flex items-center justify-center m-so-desktop border-0 bg-transparent cursor-pointer" style={{ width: 38, height: 38, borderRadius: "50%", color: "var(--m-text-dim)" }}>
             <HelpCircle size={21} strokeWidth={1.8} />
-          </a>
+          </button>
+          <button type="button" onClick={() => setGaveta("notificacoes")} aria-label={`Notificações${st?.notificacoes ? ` (${st.notificacoes} novas)` : ""}`} title="Notificações" className="relative flex items-center justify-center border-0 bg-transparent cursor-pointer shrink-0" style={{ width: 38, height: 38, borderRadius: "50%", color: "var(--m-text-dim)" }}>
+            <Bell size={21} strokeWidth={1.8} />
+            {(st?.notificacoes ?? 0) > 0 && (
+              <span className="absolute flex items-center justify-center" style={{ top: 2, right: 0, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 999, background: "var(--danger)", color: "#fff", fontSize: 10.5, fontWeight: 800, border: "2px solid var(--bg-primary)" }}>{st!.notificacoes! > 99 ? "99+" : st!.notificacoes}</span>
+            )}
+          </button>
           <div className="relative m-so-desktop">
             <button type="button" onClick={() => setMenuConta((v) => !v)} className="flex items-center cursor-pointer border-0 bg-transparent" style={{ gap: 11, paddingLeft: 16, marginLeft: 4, borderLeft: "1px solid var(--border-strong)" }}>
               <Avatar nome={st?.conta || "CommentFlow"} size={42} ig={Boolean(st?.conectada)} />
@@ -185,6 +201,13 @@ export function PainelShell({ fontes, children }: { fontes: string; children: Re
                 <a href="/" className="flex items-center gap-2.5 rounded-lg" style={{ padding: "9px 11px", fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
                   <ArrowLeft size={16} style={{ color: "var(--m-text-dim)" }} /> Voltar ao site
                 </a>
+                {comSenha && (
+                  <form method="post" action="/api/sair">
+                    <button type="submit" className="w-full flex items-center gap-2.5 rounded-lg border-0 bg-transparent cursor-pointer text-left" style={{ padding: "9px 11px", fontSize: 13.5, fontWeight: 600, color: "var(--danger-text)", font: "inherit" }}>
+                      <LogOut size={16} /> Sair
+                    </button>
+                  </form>
+                )}
               </div>
             )}
           </div>
@@ -227,15 +250,24 @@ export function PainelShell({ fontes, children }: { fontes: string; children: Re
                 <it.icon size={20} strokeWidth={1.8} /> {it.label}
               </Link>
             ))}
-            <a href={GUIA_URL} target="_blank" rel="noreferrer" className="flex items-center rounded-xl" style={{ gap: 12, padding: "12px 10px", fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
-              <HelpCircle size={20} strokeWidth={1.8} /> Guia passo a passo
-            </a>
+            <Link href="/app/ajuda" onClick={() => setFolhaMais(false)} className="flex items-center rounded-xl" style={{ gap: 12, padding: "12px 10px", fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
+              <HelpCircle size={20} strokeWidth={1.8} /> Central de ajuda
+            </Link>
             <a href="/" className="flex items-center rounded-xl" style={{ gap: 12, padding: "12px 10px", fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
               <ArrowLeft size={20} strokeWidth={1.8} /> Voltar ao site
             </a>
+            {comSenha && (
+              <form method="post" action="/api/sair">
+                <button type="submit" className="w-full flex items-center rounded-xl border-0 bg-transparent cursor-pointer text-left" style={{ gap: 12, padding: "12px 10px", fontSize: 15, fontWeight: 600, color: "var(--danger-text)", font: "inherit" }}>
+                  <LogOut size={20} strokeWidth={1.8} /> Sair
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
+      {gaveta === "notificacoes" && <NotificacoesPainel onFechar={fecharGaveta} naoLidas={st?.notificacoes ?? 0} onLidas={carregar} />}
+      {gaveta === "ajuda" && <AjudaPainel onFechar={fecharGaveta} />}
     </div>
   );
 }

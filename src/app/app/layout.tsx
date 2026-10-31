@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Caveat, Plus_Jakarta_Sans } from "next/font/google";
 import "./painel.css";
+import { senhaDoPainel } from "@/lib/sessao";
 import { PainelShell } from "./shell";
 
 // As fontes do painel antigo da Mandei: Plus Jakarta Sans no texto e Caveat no banner.
@@ -13,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <PainelShell fontes={`${jakarta.variable} ${caveat.variable}`}>{children}</PainelShell>;
+  return <PainelShell fontes={`${jakarta.variable} ${caveat.variable}`} comSenha={Boolean(senhaDoPainel())}>{children}</PainelShell>;
 }
