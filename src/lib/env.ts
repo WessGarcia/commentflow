@@ -21,6 +21,10 @@ export const env = {
   get igUserId() {
     return process.env.IG_USER_ID ?? "";
   },
+  /** Só para testes: aponta as chamadas da Graph API para outro servidor. */
+  get graphBaseUrl() {
+    return (process.env.GRAPH_BASE_URL || "https://graph.facebook.com").replace(/\/$/, "");
+  },
   get graphVersion() {
     return process.env.GRAPH_API_VERSION ?? "v26.0";
   },

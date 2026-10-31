@@ -17,6 +17,8 @@ Copie `.env.example` para `.env` e preencha. Resumo:
 | `IG_VERIFY_TOKEN` | Token de verificação do webhook. |
 | `ENCRYPTION_KEY` | Criptografa tokens no banco (`openssl rand -base64 32`). |
 | `PAINEL_SENHA` | Senha para entrar no painel. Sem ela, o painel só abre em `localhost`. |
+| `APP_URL` | Endereço público do painel (links rastreados do construtor). Se vazio, usa a origem do `META_REDIRECT_URI`. |
+| `GRAPH_BASE_URL` | Só para testes: aponta as chamadas da Graph API para outro servidor. |
 | `IG_ACCESS_TOKEN` / `IG_USER_ID` | Fallback manual (opcional após OAuth). |
 | `GRAPH_API_VERSION` | Versão da Graph API (padrão `v26.0`). |
 

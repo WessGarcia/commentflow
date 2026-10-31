@@ -7,6 +7,7 @@ import { ArrowUpDown, Copy, GitBranch, MoreHorizontal, Pause, Pencil, Play, Tras
 import type { FlowDTO } from "@/lib/flowTypes";
 import { descreverFluxo } from "@/lib/fluxoTexto";
 import { linkDoFluxo } from "@/lib/modelos";
+import { GATILHOS, tipoDe } from "@/lib/gatilhos";
 import { Busca, Card, Paginacao, Pill, Tile, Toggle, Vazio, useConfirmar } from "../_ui/ui";
 import { fmt, quando } from "../_ui/fmt";
 
@@ -89,7 +90,7 @@ export function ListaFluxos({ iniciais, execucoes, ultimas }: { iniciais: FlowDT
         <div className="grid items-center m-tabela-fluxos" style={{ gap: 10, padding: "13px 20px", fontSize: 12.5, fontWeight: 700, color: "var(--m-text-dim)", borderBottom: "1px solid var(--m-divider)" }}>
           <div><Ordena k="nome">Automação</Ordena></div>
           <div>Status</div>
-          <div className="m-col-larga m-col-media">Onde</div>
+          <div className="m-col-larga m-col-media">Gatilho</div>
           <div className="m-col-larga"><Ordena k="execucoes">Execuções</Ordena></div>
           <div className="m-col-larga"><Ordena k="ultimo">Última execução</Ordena></div>
           <div className="m-col-larga m-col-media">Ligada</div>
@@ -106,7 +107,7 @@ export function ListaFluxos({ iniciais, execucoes, ultimas }: { iniciais: FlowDT
               </div>
             </Link>
             <div><Pill tom={f.enabled ? "verde" : "ambar"} dot>{f.enabled ? "Ativo" : "Pausado"}</Pill></div>
-            <div className="m-col-larga m-col-media"><Pill tom={f.scope === "SPECIFIC_POST" ? "rosa" : "roxo"}>{f.scope === "SPECIFIC_POST" ? "Post específico" : "Todos os posts"}</Pill></div>
+            <div className="m-col-larga m-col-media"><Pill tom={tipoDe(f.tipo) !== "comentario" ? "azul" : f.scope === "SPECIFIC_POST" ? "rosa" : "roxo"}>{tipoDe(f.tipo) !== "comentario" ? GATILHOS[tipoDe(f.tipo)].rotulo : f.scope === "SPECIFIC_POST" ? "Post específico" : "Todos os posts"}</Pill></div>
             <div className="m-col-larga" style={{ fontWeight: 700 }}>{fmt(execucoes[f.id] ?? 0)}</div>
             <div className="m-col-larga" style={{ color: "var(--m-text-body)" }}>{ultimas[f.id] ? quando(ultimas[f.id]!) : "nunca rodou"}</div>
             <div className="m-col-larga m-col-media"><Toggle on={f.enabled} onChange={() => alternar(f)} rotulo={f.enabled ? "pausar" : "ativar"} /></div>

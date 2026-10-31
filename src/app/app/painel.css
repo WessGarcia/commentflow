@@ -441,7 +441,7 @@
 }
 
 /* Contatos: quadro em colunas e ficha ao lado da lista */
-.m-quadro { display: grid; grid-template-columns: repeat(5, minmax(200px, 1fr)); gap: 12px; align-items: start; }
+.m-quadro { display: grid; grid-template-columns: repeat(6, minmax(190px, 1fr)); gap: 12px; align-items: start; }
 @media (max-width: 1400px) {
   .m-quadro { display: flex; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximate; }
   .m-quadro > div { flex: 0 0 78%; max-width: 290px; scroll-snap-align: start; }
@@ -482,3 +482,21 @@
   .m-painel-corpo { padding: 0 16px !important; }
 }
 @media (max-width: 1240px) { .m-onb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+
+/* Construtor visual: paleta | canvas | painel do passo */
+.m-construtor { display: grid; grid-template-columns: 210px minmax(0, 1fr) 330px; gap: 14px; height: calc(100vh - 175px); min-height: 520px; }
+.m-construtor > * { min-height: 0; }
+.m-construtor-paleta, .m-construtor-painel { overflow-y: auto; }
+.m-canvas .react-flow__controls { box-shadow: var(--shadow-card); border-radius: 10px; overflow: hidden; }
+.m-canvas .react-flow__edge.selected .react-flow__edge-path { stroke: var(--danger) !important; }
+@media (max-width: 1240px) {
+  .m-construtor { grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto minmax(420px, 1fr); height: auto; }
+  .m-construtor-paleta { grid-column: 1 / -1; }
+  .m-paleta-itens { flex-direction: row !important; flex-wrap: wrap; }
+  .m-paleta-itens > button { flex: 1 1 150px; }
+  .m-canvas { min-height: 520px; }
+}
+@media (max-width: 900px) {
+  .m-construtor { grid-template-columns: minmax(0, 1fr); }
+  .m-canvas { height: 460px; min-height: 0; }
+}

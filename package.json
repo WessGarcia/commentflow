@@ -19,6 +19,7 @@
   "dependencies": {
     "@prisma/client": "^6.2.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@xyflow/react": "^12.12.0",
     "lucide-react": "^0.511.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

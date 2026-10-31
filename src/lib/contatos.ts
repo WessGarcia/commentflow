@@ -19,16 +19,19 @@ export type ContatoLinha = {
   comentarios: number;
   recebeu: boolean;
   respondeu: boolean;
+  clicou: boolean;
   ultimoComentario: string | null;
 };
 
 /** Todo mundo que comentou ou mandou direct, com o que aconteceu com cada um. */
 export async function listarContatos(): Promise<ContatoLinha[]> {
-  const [contatos, porTipo, comentarios] = await Promise.all([
+  const [contatos, porTipo, comentarios, cliques] = await Promise.all([
     prisma.contact.findMany({ where: { bloqueado: false }, orderBy: [{ ultimaMsg: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }], take: 5000 }),
     prisma.message.groupBy({ by: ["contactId", "direcao", "origem"], _count: { _all: true } }),
     prisma.commentEvent.findMany({ where: { fromUserId: { not: null } }, orderBy: { receivedAt: "desc" }, select: { fromUserId: true, text: true }, take: 10000 }),
+    prisma.clique.findMany({ where: { cliques: { gt: 0 }, igsid: { not: null } }, distinct: ["igsid"], select: { igsid: true } }),
   ]);
+  const clicaram = new Set(cliques.map((c) => c.igsid as string));
 
   const recebeu = new Set<string>();
   const respondeu = new Set<string>();
@@ -47,11 +50,12 @@ export async function listarContatos(): Promise<ContatoLinha[]> {
   return contatos.map((c) => {
     const r = recebeu.has(c.id);
     const s = respondeu.has(c.id);
-    const etapa = etapaDoContato({ recebeu: r, respondeu: s, etapa: c.etapa });
+    const k = clicaram.has(c.igsid);
+    const etapa = etapaDoContato({ recebeu: r, respondeu: s, clicou: k, etapa: c.etapa });
     return {
       id: c.id, igsid: c.igsid, username: c.username, nome: c.nome, email: c.email, telefone: c.telefone, notas: c.notas,
       tags: c.tags, status: c.status, etapa, manual: c.etapa !== "novo", desde: c.createdAt.toISOString(),
-      ultimo: c.ultimaMsg?.toISOString() ?? null, comentarios: qtdComentarios.get(c.igsid) ?? 0, recebeu: r, respondeu: s,
+      ultimo: c.ultimaMsg?.toISOString() ?? null, comentarios: qtdComentarios.get(c.igsid) ?? 0, recebeu: r, respondeu: s, clicou: k,
       ultimoComentario: ultimoComentario.get(c.igsid) ?? null,
     };
   });
@@ -65,9 +69,9 @@ export function contatosEmCsv(linhas: ContatoLinha[]) {
     const seguro = /^[=+\-@]/.test(s) ? `'${s}` : s;
     return /[",\n;]/.test(seguro) ? `"${seguro.replace(/"/g, '""')}"` : seguro;
   };
-  const cab = ["usuario", "nome", "email", "telefone", "etiquetas", "etapa", "status", "comentarios", "recebeu_direct", "respondeu", "contato_desde", "ultima_interacao", "notas"];
+  const cab = ["usuario", "nome", "email", "telefone", "etiquetas", "etapa", "status", "comentarios", "recebeu_direct", "respondeu", "clicou_link", "contato_desde", "ultima_interacao", "notas"];
   const corpo = linhas.map((c) =>
-    [c.username ?? "", c.nome, c.email, c.telefone, c.tags.join(" "), c.etapa, c.status, c.comentarios, c.recebeu ? "sim" : "nao", c.respondeu ? "sim" : "nao", c.desde, c.ultimo, c.notas].map(cel).join(","),
+    [c.username ?? "", c.nome, c.email, c.telefone, c.tags.join(" "), c.etapa, c.status, c.comentarios, c.recebeu ? "sim" : "nao", c.respondeu ? "sim" : "nao", c.clicou ? "sim" : "nao", c.desde, c.ultimo, c.notas].map(cel).join(","),
   );
   return "\uFEFF" + [cab.join(","), ...corpo].join("\n");
 }

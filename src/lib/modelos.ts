@@ -1,4 +1,5 @@
 import type { DmFlow } from "@/lib/flowTypes";
+import { GATILHOS, tipoDe, type TipoGatilho } from "@/lib/gatilhos";
 
 /**
  * Modelos de automação: o pop-up "Modelos" que abre em "+ Nova automação" e o
@@ -21,6 +22,8 @@ export const OBJETIVOS: { id: Objetivo; rotulo: string }[] = [
 
 /** O formulário de três passos. É o que o editor simples edita. */
 export type Simples = {
+  /** o que dispara: comentário, live, story, menção ou reação (lib/gatilhos.ts) */
+  tipo: TipoGatilho;
   nome: string;
   palavras: string[];
   /** true = qualquer comentário dispara, sem palavra-chave */
@@ -44,7 +47,9 @@ export type Modelo = {
   objetivo: Objetivo;
   selo: "popular" | "novo" | null;
   recomendado?: boolean;
-  s: Omit<Simples, "nome" | "postId" | "link" | "ativo">;
+  /** o gatilho do modelo; sem nada, é comentário */
+  tipo?: TipoGatilho;
+  s: Omit<Simples, "nome" | "postId" | "link" | "ativo" | "tipo"> & { tipo?: TipoGatilho };
 };
 
 const PUBLICAS = ["Te mandei no direct, dá uma olhada lá 💜", "Mandei lá no direct 👀", "Chegou aí no direct, confere", "Já está no seu direct!"];
@@ -149,22 +154,67 @@ export const MODELOS: Modelo[] = [
       entrega: "",
     },
   },
+  {
+    id: "mencao-no-story",
+    nome: "Agradecer menção no story",
+    descricao: "Quando alguém marcar você num story, agradeça e mande um presente no direct.",
+    objetivo: "engajar", selo: "novo", tipo: "story_mencao",
+    s: {
+      tipo: "story_mencao", palavras: [], qualquer: true, publicas: [],
+      pergunta: "Vi que você me marcou no story, obrigado! 💜 Quer um presente por isso?", botao: "Quero",
+      entrega: "Aqui está o seu presente: {link}",
+    },
+  },
+  {
+    id: "leads-pelos-stories",
+    nome: "Capturar leads pelos stories",
+    descricao: "Quem responder o story com a palavra-chave recebe o material no direct.",
+    objetivo: "vender", selo: null, tipo: "story_resposta",
+    s: {
+      tipo: "story_resposta", palavras: ["quero", "eu quero"], qualquer: false, publicas: [],
+      pergunta: "", botao: "",
+      entrega: "Que bom que você quer! Aqui está o material completo: {link}",
+    },
+  },
+  {
+    id: "comentario-na-live",
+    nome: "Link durante a live",
+    descricao: "Quem comentar a palavra durante a live recebe o link no direct na hora.",
+    objetivo: "trafego", selo: null, tipo: "live",
+    s: {
+      tipo: "live", palavras: ["link", "quero"], qualquer: false, publicas: [],
+      pergunta: "Oi! Vi seu comentário na live. Quer o link aqui?", botao: "Quero",
+      entrega: "Aqui está: {link}\n\nAproveita que a live ainda está no ar 🔴",
+    },
+  },
+  {
+    id: "reacao-no-direct",
+    nome: "Responder quem reage no direct",
+    descricao: "Quando alguém reagir a uma mensagem sua, puxe a conversa.",
+    objetivo: "engajar", selo: null, tipo: "reacao",
+    s: {
+      tipo: "reacao", palavras: [], qualquer: true, publicas: [],
+      pergunta: "", botao: "",
+      entrega: "Vi sua reação 😄 Posso te ajudar com mais alguma coisa?",
+    },
+  },
 ];
 
 export const linkDoModelo = (id: string) => `/app/automacao?modelo=${id}`;
 
 export function simplesEmBranco(): Simples {
-  return { nome: "", palavras: [], qualquer: false, postId: "", pergunta: "", botao: "Quero", entrega: "", link: "", publicas: [], ativo: true };
+  return { tipo: "comentario", nome: "", palavras: [], qualquer: false, postId: "", pergunta: "", botao: "Quero", entrega: "", link: "", publicas: [], ativo: true };
 }
 
 export function simplesDoModelo(id: string): Simples | null {
   const m = MODELOS.find((x) => x.id === id);
   if (!m) return null;
-  return { ...simplesEmBranco(), ...m.s, palavras: [...m.s.palavras], publicas: [...m.s.publicas], nome: m.nome };
+  return { ...simplesEmBranco(), ...m.s, tipo: m.s.tipo ?? "comentario", palavras: [...m.s.palavras], publicas: [...m.s.publicas], nome: m.nome };
 }
 
 type FluxoSalvo = {
   name: string;
+  tipo?: string;
   enabled: boolean;
   scope: string;
   mediaId: string | null;
@@ -173,6 +223,7 @@ type FluxoSalvo = {
   publicReplies: string[];
   dmMessage: string | null;
   dmFlow: DmFlow | null;
+  grafo?: unknown;
 };
 
 /**
@@ -181,8 +232,10 @@ type FluxoSalvo = {
  * um botão): essa abre no modo avançado.
  */
 export function simplesDoFluxo(f: FluxoSalvo): Simples | null {
+  if (f.grafo) return null; // feito no construtor visual: só abre lá
   const base: Simples = {
     ...simplesEmBranco(),
+    tipo: tipoDe(f.tipo),
     nome: f.name,
     ativo: f.enabled,
     palavras: f.matchType === "KEYWORD" ? f.keywords : [],
@@ -216,14 +269,17 @@ export function payloadDoSimples(s: Simples) {
     pergunta && entrega
       ? { entry: "s1", steps: { s1: { text: pergunta, quickReplies: [{ title: s.botao.trim() || "Quero", next: "s2" }] }, s2: { text: entrega, quickReplies: [] } } }
       : null;
+  const g = GATILHOS[s.tipo];
+  const qualquer = g.palavras === "nenhuma" || s.qualquer;
   return {
     name: nomeSugerido(s),
+    tipo: s.tipo,
     enabled: s.ativo,
-    scope: s.postId.trim() ? "SPECIFIC_POST" : "ALL_POSTS",
-    mediaId: s.postId.trim() || null,
-    matchType: s.qualquer ? "ANY" : "KEYWORD",
-    keywords: s.qualquer ? [] : s.palavras.map((p) => p.trim()).filter(Boolean),
-    publicReplies: s.publicas.map((p) => p.trim()).filter(Boolean),
+    scope: g.post && s.postId.trim() ? "SPECIFIC_POST" : "ALL_POSTS",
+    mediaId: g.post ? s.postId.trim() || null : null,
+    matchType: qualquer ? "ANY" : "KEYWORD",
+    keywords: qualquer ? [] : s.palavras.map((p) => p.trim()).filter(Boolean),
+    publicReplies: g.publica ? s.publicas.map((p) => p.trim()).filter(Boolean) : [],
     dmMessage: dmFlow ? null : entrega || null,
     dmFlow,
   };
@@ -231,7 +287,8 @@ export function payloadDoSimples(s: Simples) {
 
 export function nomeSugerido(s: Simples) {
   if (s.nome.trim()) return s.nome.trim();
-  if (s.qualquer) return "Qualquer comentário";
+  if (GATILHOS[s.tipo].palavras === "nenhuma") return GATILHOS[s.tipo].rotulo;
+  if (s.qualquer) return s.tipo === "comentario" ? "Qualquer comentário" : GATILHOS[s.tipo].rotulo;
   const p = s.palavras.filter(Boolean);
   return p.length ? `Palavra “${p[0]}”` : "Nova automação";
 }
@@ -239,9 +296,10 @@ export function nomeSugerido(s: Simples) {
 /** O que ainda falta para seguir do passo. A primeira frase aparece em amarelo. */
 export function faltaNoPasso(s: Simples, passo: 1 | 2 | 3): string[] {
   const falta: string[] = [];
+  const g = GATILHOS[s.tipo];
   if (passo === 1) {
-    if (!s.qualquer && !s.palavras.some((p) => p.trim())) falta.push("Escreva ao menos uma palavra-chave (digite e aperte Enter).");
-    if (s.postId !== "" && !s.postId.trim()) falta.push("Cole o ID do post ou escolha “Todas as publicações”.");
+    if (g.palavras !== "nenhuma" && !s.qualquer && !s.palavras.some((p) => p.trim())) falta.push("Escreva ao menos uma palavra-chave (digite e aperte Enter).");
+    if (g.post && s.postId !== "" && !s.postId.trim()) falta.push("Cole o ID do post ou escolha “Todas as publicações”.");
   }
   if (passo === 2) {
     if (s.pergunta.trim() && !s.entrega.trim()) falta.push("Escreva a mensagem que chega depois do botão.");
@@ -250,7 +308,7 @@ export function faltaNoPasso(s: Simples, passo: 1 | 2 | 3): string[] {
     if (s.link.trim() && !/^https?:\/\//i.test(s.link.trim())) falta.push("O link precisa começar com https://");
   }
   if (passo === 3) {
-    if (!s.entrega.trim() && !s.publicas.some((p) => p.trim())) falta.push("A automação precisa fazer algo: escreva uma resposta pública ou volte e escreva o direct.");
+    if (!s.entrega.trim() && !(g.publica && s.publicas.some((p) => p.trim()))) falta.push(g.publica ? "A automação precisa fazer algo: escreva uma resposta pública ou volte e escreva o direct." : "Volte ao passo 2 e escreva a mensagem do direct.");
   }
   return falta;
 }

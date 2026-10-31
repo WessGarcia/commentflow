@@ -5,6 +5,7 @@ import { getActiveCredentials } from "@/lib/credentials";
 import { asDmFlow, buildStepMessage } from "@/lib/flowTypes";
 import { estaBloqueado, registrarEnvio, registrarMensagem } from "@/lib/conversas";
 import { notificar } from "@/lib/notificacoes";
+import { iniciarExecucao } from "@/lib/motor";
 
 export interface IncomingComment {
   commentId: string;
@@ -13,6 +14,8 @@ export interface IncomingComment {
   fromUsername?: string;
   text?: string;
   raw?: unknown;
+  /** comentário feito numa live (campo live_comments do webhook) */
+  live?: boolean;
 }
 
 function pickRandom(items: string[]): string | undefined {
@@ -79,7 +82,7 @@ export async function processComment(c: IncomingComment) {
     return { skipped: "blocked-contact" };
   }
 
-  const flows = await prisma.flow.findMany({ where: { enabled: true } });
+  const flows = await prisma.flow.findMany({ where: { enabled: true, tipo: c.live ? "live" : "comentario" } });
   const text = (c.text ?? "").toLowerCase();
 
   const matched = flows.find((f) => {
@@ -144,7 +147,8 @@ export async function executarFluxo(
 ): Promise<string[]> {
   const actions: string[] = [];
 
-  const publicMsg = pickRandom(matched.publicReplies);
+  // na live não existe resposta pública: só a privada
+  const publicMsg = matched.tipo === "comentario" ? pickRandom(matched.publicReplies) : undefined;
   if (publicMsg) {
     const r = await replyToComment(creds, c.commentId, publicMsg);
     await prisma.activityLog.create({
@@ -158,9 +162,12 @@ export async function executarFluxo(
     actions.push(r.ok ? "public_reply" : "public_reply_error");
   }
 
-  // DM: prefer a multi-step flow (quick replies); otherwise the simple message.
+  // DM: the visual builder's graph wins; then the multi-step flow (quick
+  // replies); otherwise the simple message.
   const dmFlow = asDmFlow(matched.dmFlow);
-  if (dmFlow) {
+  if (matched.grafo) {
+    actions.push(...(await iniciarExecucao(matched, c)));
+  } else if (dmFlow) {
     const entry = buildStepMessage(matched.id, dmFlow, dmFlow.entry);
     if (entry) {
       const r = await sendPrivateReply(

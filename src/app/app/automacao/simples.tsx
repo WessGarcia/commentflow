@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Hash, Heart, Instagram, Link2, Loader2, MessageCircle, Send, Sparkles, Wand2, Workflow, X } from "lucide-react";
+import { ArrowRight, AtSign, Check, ChevronLeft, ChevronRight, Hash, Heart, Instagram, Link2, Loader2, MessageCircle, Radio, Send, SmilePlus, Sparkles, Wand2, Workflow, X } from "lucide-react";
+import { GATILHOS, TIPOS, type TipoGatilho } from "@/lib/gatilhos";
 import { faltaNoPasso, nomeSugerido, payloadDoSimples, simplesEmBranco, type Simples } from "@/lib/modelos";
 import { Avatar, Pill, Toggle } from "../_ui/ui";
 
@@ -29,6 +30,9 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [pronto, setPronto] = useState<{ nome: string; id: string } | null>(null);
+  const [trocandoTipo, setTrocandoTipo] = useState(false);
+  const g = GATILHOS[s.tipo];
+  const Ic = ICONE[s.tipo];
 
   const mudar = (fn: (x: Simples) => void) => setS((atual) => { const n = structuredClone(atual); fn(n); return n; });
   const falta = useMemo(() => faltaNoPasso(s, passo), [s, passo]);
@@ -94,24 +98,44 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
           {passo === 1 && (
             <>
               <Titulo t="Quando a automação dispara" s="É a porta de entrada da conversa." />
-              <div className="w-full flex items-center" style={{ gap: 11, padding: 12, borderRadius: 12, border: "1.5px solid var(--accent)", background: "var(--m-surface)", marginTop: 14 }}>
-                <span className="shrink-0 flex items-center justify-center" style={{ width: 40, height: 40, borderRadius: 11, background: "linear-gradient(135deg, var(--accent), var(--m-pink))", color: "#fff" }}><MessageCircle size={19} /></span>
+              <button type="button" onClick={() => setTrocandoTipo((v) => !v)} className="w-full flex items-center text-left cursor-pointer" style={{ gap: 11, padding: 12, borderRadius: 12, border: "1.5px solid var(--accent)", background: "var(--m-surface)", marginTop: 14, font: "inherit", color: "inherit" }}>
+                <span className="shrink-0 flex items-center justify-center" style={{ width: 40, height: 40, borderRadius: 11, background: "linear-gradient(135deg, var(--accent), var(--m-pink))", color: "#fff" }}><Ic size={19} /></span>
                 <span className="min-w-0 flex-1">
-                  <span className="block" style={{ fontSize: 13.5, fontWeight: 700 }}>Comentário na publicação</span>
-                  <span className="block" style={{ fontSize: 12, color: "var(--m-text-dim)", lineHeight: 1.4 }}>Quando alguém comenta num post ou reel seu.</span>
+                  <span className="block" style={{ fontSize: 13.5, fontWeight: 700 }}>{g.rotulo}</span>
+                  <span className="block" style={{ fontSize: 12, color: "var(--m-text-dim)", lineHeight: 1.4 }}>{g.descricao}</span>
                 </span>
-              </div>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--accent)" }}>{trocandoTipo ? "fechar" : "trocar"}</span>
+              </button>
+              {trocandoTipo && (
+                <div className="flex flex-col" style={{ gap: 6, marginTop: 8 }}>
+                  {TIPOS.map((k) => {
+                    const K = ICONE[k];
+                    return (
+                      <button key={k} type="button" onClick={() => { mudar((x) => { x.tipo = k; if (GATILHOS[k].palavras === "nenhuma") { x.palavras = []; x.qualquer = true; } else if (x.qualquer && GATILHOS[k].palavras === "obrigatorias" && k !== "comentario") x.qualquer = false; }); setTrocandoTipo(false); }}
+                        className="w-full flex items-center text-left cursor-pointer m-row" style={{ gap: 10, padding: "9px 11px", borderRadius: 10, border: `1.5px solid ${s.tipo === k ? "var(--accent)" : "var(--m-row-border)"}`, background: "var(--bg-card)", font: "inherit", color: "inherit" }}>
+                        <K size={16} style={{ color: "var(--accent)" }} />
+                        <span className="min-w-0"><span className="block" style={{ fontSize: 12.5, fontWeight: 700 }}>{GATILHOS[k].rotulo}</span><span className="block" style={{ fontSize: 11.5, color: "var(--m-text-dim)" }}>{GATILHOS[k].descricao}</span></span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
+              {g.palavras === "nenhuma" ? (
+                <div className="m-hint" style={{ marginTop: 16 }}>Esse gatilho não tem palavra-chave: vale para todo mundo que {s.tipo === "story_mencao" ? "marcar a sua conta num story" : "reagir a uma mensagem sua"}.</div>
+              ) : (
               <div style={{ marginTop: 20 }}>
                 <div className="m-label" style={{ display: "flex", alignItems: "center", gap: 5 }}><Hash size={13} /> Palavras-chave</div>
-                <div className="m-hint" style={{ marginBottom: 8, marginTop: 0 }}>Quem comentar uma delas entra na automação. Digite e aperte Enter. Vale se o comentário contiver a palavra, sem diferenciar maiúsculas.</div>
+                <div className="m-hint" style={{ marginBottom: 8, marginTop: 0 }}>Quem {s.tipo === "story_resposta" ? "responder o story com" : "comentar"} uma delas entra na automação. Digite e aperte Enter. Vale se o texto contiver a palavra, sem diferenciar maiúsculas.</div>
                 {!s.qualquer && <Palavras valor={s.palavras} onChange={(v) => mudar((x) => { x.palavras = v; })} />}
                 <label className="flex items-center cursor-pointer" style={{ gap: 8, marginTop: 10, fontSize: 13 }}>
                   <input type="checkbox" checked={s.qualquer} onChange={(e) => mudar((x) => { x.qualquer = e.target.checked; })} style={{ accentColor: "var(--accent)" }} />
-                  Responder qualquer comentário, mesmo sem palavra-chave
+                  {s.tipo === "story_resposta" ? "Vale qualquer resposta ao story, mesmo sem palavra-chave" : "Responder qualquer comentário, mesmo sem palavra-chave"}
                 </label>
               </div>
+              )}
 
+              {g.post && (
               <div style={{ marginTop: 20 }}>
                 <div className="m-label" style={{ display: "flex", alignItems: "center", gap: 5 }}><Instagram size={13} /> Em qual publicação</div>
                 <div className="flex flex-col" style={{ gap: 6, marginTop: 8 }}>
@@ -125,6 +149,8 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
                   </div>
                 )}
               </div>
+              )}
+              {s.tipo === "live" && <div className="m-hint" style={{ marginTop: 14 }}>Vale para qualquer live sua, e só enquanto ela está no ar: é a regra da Meta para responder comentários de live.</div>}
             </>
           )}
 
@@ -133,7 +159,9 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
               <Titulo t="O que a pessoa recebe no direct" s="Duas mensagens: a pergunta e a entrega." />
               <div style={{ marginTop: 14, display: "flex", gap: 9, padding: "11px 13px", borderRadius: 12, background: "var(--m-info-bg)", color: "var(--m-info-text)", fontSize: 12.5, lineHeight: 1.5 }}>
                 <Sparkles size={15} className="shrink-0" style={{ marginTop: 1 }} />
-                <span>O Instagram só abre a conversa depois que a pessoa <b>toca no botão</b>. Por isso a primeira mensagem é uma pergunta: o toque dela libera a entrega do link.</span>
+                {g.respostaPrivada
+                  ? <span>O Instagram só abre a conversa depois que a pessoa <b>toca no botão</b>. Por isso a primeira mensagem é uma pergunta: o toque dela libera a entrega do link.</span>
+                  : <span>A pessoa já falou com você, então a conversa está aberta por 24 h: a pergunta é opcional e dá para mandar a entrega direto.</span>}
               </div>
 
               <div style={{ marginTop: 18 }}>
@@ -173,11 +201,11 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
           {passo === 3 && (
             <>
               <Titulo t="Publicar" s="A última parte, e já está no ar." />
-              <div style={{ marginTop: 16 }}>
+              {g.publica && <div style={{ marginTop: 16 }}>
                 <div className="m-label" style={{ display: "flex", alignItems: "center", gap: 5 }}><Heart size={13} /> Resposta pública no comentário</div>
                 <div className="m-hint" style={{ marginBottom: 8, marginTop: 0 }}>Uma por linha. Cada comentário recebe uma delas, para não parecer robô. Vazio = não responde no post.</div>
                 <textarea className="m-textarea" rows={4} value={s.publicas.join("\n")} onChange={(e) => mudar((x) => { x.publicas = e.target.value.split("\n"); })} placeholder={"Te mandei no direct 👀\nMandei lá no direct, dá uma olhada"} />
-              </div>
+              </div>}
 
               <div style={{ marginTop: 18 }}>
                 <div className="m-label">Nome da automação</div>
@@ -191,10 +219,9 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
               </div>
 
               <div style={{ marginTop: 20, padding: 14, borderRadius: 12, background: "var(--m-neutral-bg)", fontSize: 12.5, lineHeight: 1.6, color: "var(--m-text-body)" }}>
-                <b>Resumo:</b> quando alguém {s.qualquer ? "comentar qualquer coisa" : `comentar ${s.palavras.filter(Boolean).map((p) => `“${p}”`).join(" ou ") || "a palavra-chave"}`}
-                {s.postId.trim() ? " naquela publicação" : " em qualquer publicação"},
-                {s.publicas.some((p) => p.trim()) ? " o CommentFlow responde no comentário" : ""}
-                {s.publicas.some((p) => p.trim()) && s.entrega.trim() ? " e" : ""}
+                <b>Resumo:</b> quando alguém {resumoGatilho(s)},
+                {g.publica && s.publicas.some((p) => p.trim()) ? " o CommentFlow responde no comentário" : ""}
+                {g.publica && s.publicas.some((p) => p.trim()) && s.entrega.trim() ? " e" : ""}
                 {s.entrega.trim() ? (s.pergunta.trim() ? " manda a pergunta com o botão; quem tocar recebe a mensagem com o link" : " manda a mensagem no direct") : ""}.
               </div>
             </>
@@ -221,6 +248,19 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
       </div>
     </div>
   );
+}
+
+const ICONE: Record<TipoGatilho, typeof MessageCircle> = { comentario: MessageCircle, live: Radio, story_resposta: Send, story_mencao: AtSign, reacao: SmilePlus };
+
+function resumoGatilho(s: Simples) {
+  const palavras = s.palavras.filter(Boolean).map((p) => `“${p}”`).join(" ou ") || "a palavra-chave";
+  switch (s.tipo) {
+    case "comentario": return `${s.qualquer ? "comentar qualquer coisa" : `comentar ${palavras}`}${s.postId.trim() ? " naquela publicação" : " em qualquer publicação"}`;
+    case "live": return `comentar ${palavras} na sua live`;
+    case "story_resposta": return s.qualquer ? "responder um story seu" : `responder um story seu com ${palavras}`;
+    case "story_mencao": return "marcar a sua conta num story";
+    case "reacao": return "reagir a uma mensagem sua no direct";
+  }
 }
 
 /** "Um post específico" escolhido; o espaço guarda a escolha enquanto o ID está vazio. */
@@ -280,7 +320,10 @@ function Telefone({ s, usuario }: { s: Simples; usuario: string | null }) {
   const link = s.link.trim() || "https://seulink.com";
   const troca = (x: string) => x.split("{link}").join(link);
   const palavra = s.qualquer ? "Amei! 😍" : s.palavras.filter(Boolean)[0] || "palavra-chave";
-  const publica = s.publicas.filter((p) => p.trim())[0];
+  const g = GATILHOS[s.tipo];
+  const publica = g.publica ? s.publicas.filter((p) => p.trim())[0] : undefined;
+  const origem = s.tipo === "comentario" ? "NO COMENTÁRIO DO POST" : s.tipo === "live" ? "NO COMENTÁRIO DA LIVE" : s.tipo === "story_resposta" ? "RESPONDEU SEU STORY" : s.tipo === "story_mencao" ? "MENCIONOU VOCÊ NO STORY" : "REAGIU À SUA MENSAGEM";
+  const fala = s.tipo === "story_mencao" ? "📸 marcou @você no story" : s.tipo === "reacao" ? "❤️ reagiu à sua mensagem" : palavra;
   return (
     <div className="m-simples-fone">
       <div style={{ position: "sticky", top: 10 }}>
@@ -295,8 +338,8 @@ function Telefone({ s, usuario }: { s: Simples; usuario: string | null }) {
 
           <div style={{ padding: "14px 15px 18px", display: "flex", flexDirection: "column", gap: 10, maxHeight: "62vh", overflowY: "auto" }}>
             <div style={{ border: "1px dashed var(--m-row-border)", borderRadius: 13, padding: "10px 12px" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: ".04em", color: "var(--m-text-dim)" }}>NO COMENTÁRIO DO POST</div>
-              <div style={{ fontSize: 12.5, marginTop: 6 }}><b>@fulano</b> {palavra}</div>
+              <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: ".04em", color: "var(--m-text-dim)" }}>{origem}</div>
+              <div style={{ fontSize: 12.5, marginTop: 6 }}><b>@fulano</b> {fala}</div>
               {publica && <div style={{ fontSize: 12.5, marginTop: 4, color: "var(--accent)" }}><b>você</b> {publica}</div>}
             </div>
 
@@ -312,7 +355,7 @@ function Telefone({ s, usuario }: { s: Simples; usuario: string | null }) {
             {s.entrega.trim() ? <Balao>{troca(s.entrega)}</Balao> : <div style={{ fontSize: 12, color: "var(--m-text-dim)", textAlign: "center" }}>Sem direct nesta automação.</div>}
           </div>
         </div>
-        <div className="m-hint" style={{ textAlign: "center", marginTop: 10 }}>É assim que fica para quem comentar.</div>
+        <div className="m-hint" style={{ textAlign: "center", marginTop: 10 }}>É assim que a pessoa vê.</div>
       </div>
     </div>
   );

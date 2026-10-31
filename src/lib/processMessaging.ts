@@ -4,6 +4,7 @@ import { getActiveCredentials } from "@/lib/credentials";
 import { sendDm } from "@/lib/meta";
 import { asDmFlow, buildStepMessage, decodePayload } from "@/lib/flowTypes";
 import { estaBloqueado, registrarEnvio } from "@/lib/conversas";
+import { tocou } from "@/lib/motor";
 
 export interface IncomingMessaging {
   senderId?: string;
@@ -23,6 +24,19 @@ function isUniqueViolation(e: unknown): boolean {
 export async function processMessaging(e: IncomingMessaging) {
   if (!e.senderId || !e.payload) return { skipped: "no-payload" };
   if (await estaBloqueado(e.senderId)) return { skipped: "blocked-contact" };
+
+  // toque num botão do construtor visual: o payload traz a execução e o destino
+  if (e.payload.startsWith("g::")) {
+    const chave = `msg:${e.mid ?? `${e.senderId}:${e.payload}`}`;
+    try {
+      await prisma.processedEvent.create({ data: { key: chave } });
+    } catch (err) {
+      if (isUniqueViolation(err)) return { skipped: "duplicate-event" };
+      throw err;
+    }
+    await tocou(e.payload);
+    return { ok: true, construtor: true };
+  }
 
   const decoded = decodePayload(e.payload);
   if (!decoded || !decoded.stepId) return { skipped: "unknown-payload" };

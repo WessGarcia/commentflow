@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { GripVertical, Loader2, MessageSquare, RotateCcw, Send } from "lucide-react";
+import { GripVertical, Loader2, MessageSquare, MousePointerClick, RotateCcw, Send } from "lucide-react";
 import type { ContatoLinha } from "@/lib/contatos";
 import { COLUNAS, etapaDoContato, type EtapaId } from "@/lib/quadro";
 import { Avatar, Busca, Pill } from "../_ui/ui";
@@ -42,7 +42,7 @@ export function Quadro({ inicial }: { inicial: ContatoLinha[] }) {
     setErro(null);
     // otimista: o cartão anda na hora e volta se o servidor recusar
     const antes = cards;
-    const novaEtapa = etapa ?? etapaDoContato({ recebeu: card.recebeu, respondeu: card.respondeu, etapa: null });
+    const novaEtapa = etapa ?? etapaDoContato({ recebeu: card.recebeu, respondeu: card.respondeu, clicou: card.clicou, etapa: null });
     setCards((l) => l.map((c) => (c.id === card.id ? { ...c, etapa: novaEtapa, manual: etapa != null } : c)));
     const r = await fetch(`/api/conversas/${card.id}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ acao: "etapa", etapa }) });
     setSalvando(null);
@@ -106,6 +106,7 @@ export function Quadro({ inicial }: { inicial: ContatoLinha[] }) {
                       {c.comentarios > 0 && <Marca icone={<MessageSquare size={10} />}>{c.comentarios} coment.</Marca>}
                       {c.recebeu && <Marca icone={<Send size={10} />} tom="roxo">direct</Marca>}
                       {c.respondeu && <Marca icone={<MessageSquare size={10} />} tom="azul">respondeu</Marca>}
+                      {c.clicou && <Marca icone={<MousePointerClick size={10} />} tom="roxo">clicou</Marca>}
                       {c.email && <Marca>e-mail</Marca>}
                     </div>
 
@@ -143,7 +144,7 @@ export function Quadro({ inicial }: { inicial: ContatoLinha[] }) {
       </div>
 
       <div className="m-hint" style={{ marginTop: 14 }}>
-        As três primeiras colunas andam sozinhas conforme a pessoa age. <b>Virou cliente</b> e <b>Não rolou</b> são suas: o CommentFlow vê mensagem, não vê venda.
+        As quatro primeiras colunas andam sozinhas conforme a pessoa age. <b>Virou cliente</b> e <b>Não rolou</b> são suas: o CommentFlow vê mensagem, não vê venda.
       </div>
     </>
   );

@@ -24,6 +24,9 @@ services:
       # Senha para entrar no painel (escolha uma; sem ela o painel fica trancado):
       - key: PAINEL_SENHA
         sync: false
+      # Endereço público do serviço (ex.: https://commentflow-xxxx.onrender.com):
+      - key: APP_URL
+        sync: false
       - key: META_APP_ID
         sync: false
       - key: META_APP_SECRET

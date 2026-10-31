@@ -16,13 +16,14 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const parsed = flowInputSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+    return Response.json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos." }, { status: 400 });
   }
 
   const data = parsed.data;
   const flow = await prisma.flow.create({
     data: {
       name: data.name,
+      tipo: data.tipo ?? "comentario",
       enabled: data.enabled ?? true,
       scope: data.scope ?? "ALL_POSTS",
       mediaId: data.mediaId ?? null,
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
       dmFlow: data.dmFlow
         ? (data.dmFlow as Prisma.InputJsonValue)
         : Prisma.JsonNull,
+      grafo: data.grafo ? (data.grafo as Prisma.InputJsonValue) : Prisma.JsonNull,
     },
   });
   await notificar({

@@ -4,6 +4,8 @@ import { verifySignature } from "@/lib/signature";
 import { processComment } from "@/lib/processComment";
 import { processMessaging } from "@/lib/processMessaging";
 import { registrarMensagem } from "@/lib/conversas";
+import { receberTexto } from "@/lib/motor";
+import { dispararPorMensagem } from "@/lib/disparo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,7 +47,9 @@ interface MessagingEvent {
     is_deleted?: boolean;
     quick_reply?: { payload?: string };
     attachments?: Array<{ type?: string }>;
+    reply_to?: { story?: { id?: string; url?: string } };
   };
+  reaction?: { mid?: string; action?: "react" | "unreact"; reaction?: string; emoji?: string };
   postback?: { payload?: string; title?: string; mid?: string };
 }
 
@@ -103,7 +107,7 @@ export async function POST(req: NextRequest) {
   for (const entry of payload.entry ?? []) {
     // Comments
     for (const change of entry.changes ?? []) {
-      if (change.field !== "comments") continue;
+      if (change.field !== "comments" && change.field !== "live_comments") continue;
       const v = change.value ?? {};
       if (!v.id) continue;
       // Self-comment loops are prevented in processComment, which compares
@@ -116,6 +120,7 @@ export async function POST(req: NextRequest) {
           fromUsername: v.from?.username,
           text: v.text,
           raw: change,
+          live: change.field === "live_comments",
         }).catch((e) => console.error("processComment error", e)),
       );
     }
@@ -124,9 +129,30 @@ export async function POST(req: NextRequest) {
     for (const event of entry.messaging ?? []) {
       tasks.push(guardarMensagem(event).catch((e) => console.error("guardarMensagem error", e)));
       if (event.message?.is_echo) continue; // our own outbound echoes don't trigger flows
+      const de = event.sender?.id;
+      if (de) {
+        // gatilhos que chegam pelo direct
+        if (event.reaction?.action === "react") {
+          tasks.push(dispararPorMensagem("reacao", { igsid: de, texto: event.reaction.emoji ?? "", chave: `${event.reaction.mid}:${de}:${event.timestamp ?? ""}` }).catch((e) => console.error("reacao error", e)));
+          continue;
+        }
+        if (event.message?.attachments?.some((a) => a.type === "story_mention")) {
+          tasks.push(dispararPorMensagem("story_mencao", { igsid: de, texto: "", chave: event.message.mid ?? `${de}:${event.timestamp}` }).catch((e) => console.error("story_mencao error", e)));
+          continue;
+        }
+        if (event.message?.reply_to?.story) {
+          tasks.push(dispararPorMensagem("story_resposta", { igsid: de, texto: event.message.text ?? "", chave: event.message.mid ?? `${de}:${event.timestamp}` }).catch((e) => console.error("story_resposta error", e)));
+          continue;
+        }
+      }
       const qrPayload =
         event.message?.quick_reply?.payload ?? event.postback?.payload;
-      if (!qrPayload) continue;
+      if (!qrPayload) {
+        // texto livre: pode ser a resposta de uma coleta do construtor
+        const texto = event.message?.text;
+        if (texto && event.sender?.id) tasks.push(receberTexto(event.sender.id, texto).catch((e) => console.error("receberTexto error", e)));
+        continue;
+      }
       tasks.push(
         processMessaging({
           senderId: event.sender?.id,

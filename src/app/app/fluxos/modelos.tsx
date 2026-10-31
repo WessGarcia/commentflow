@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  ArrowRight, Filter, Flame, Gift, Hash, Heart, LayoutGrid, ListChecks, MousePointerClick, Plus, Search, Send, ShoppingBag, Sparkles,
+  ArrowRight, AtSign, Flame, Gift, Hash, Heart, LayoutGrid, ListChecks, MessageCircle, MousePointerClick, Plus, Radio, Search, Send, ShoppingBag, SmilePlus, Sparkles,
   Tag, Users, Video, X, Zap,
 } from "lucide-react";
 import { MODELOS, OBJETIVOS, linkDoModelo, type Modelo, type Objetivo } from "@/lib/modelos";
+import { GATILHOS, TIPOS, type TipoGatilho } from "@/lib/gatilhos";
 import { Card } from "../_ui/ui";
 
 /**
@@ -20,6 +21,10 @@ const ICONE_MODELO: Record<string, ReactNode> = {
   "link-por-dm": <Send size={22} strokeWidth={1.8} />, "material-gratis": <Gift size={22} strokeWidth={1.8} />, "preco-no-direct": <Tag size={22} strokeWidth={1.8} />,
   "palavra-chave": <Hash size={22} strokeWidth={1.8} />, cupom: <ShoppingBag size={22} strokeWidth={1.8} />, "lista-de-espera": <ListChecks size={22} strokeWidth={1.8} />,
   "link-da-aula": <Video size={22} strokeWidth={1.8} />, sorteio: <Sparkles size={22} strokeWidth={1.8} />, "agradecer-comentarios": <Heart size={22} strokeWidth={1.8} />,
+  "mencao-no-story": <AtSign size={22} strokeWidth={1.8} />, "leads-pelos-stories": <Users size={22} strokeWidth={1.8} />, "comentario-na-live": <Radio size={22} strokeWidth={1.8} />, "reacao-no-direct": <SmilePlus size={22} strokeWidth={1.8} />,
+};
+const ICONE_TIPO: Record<TipoGatilho, ReactNode> = {
+  comentario: <MessageCircle size={17} strokeWidth={1.8} />, live: <Radio size={17} strokeWidth={1.8} />, story_resposta: <Send size={17} strokeWidth={1.8} />, story_mencao: <AtSign size={17} strokeWidth={1.8} />, reacao: <SmilePlus size={17} strokeWidth={1.8} />,
 };
 const ICONE_OBJETIVO: Record<Objetivo, ReactNode> = {
   seguidores: <Users size={17} strokeWidth={1.8} />, engajar: <Heart size={17} strokeWidth={1.8} />, trafego: <MousePointerClick size={17} strokeWidth={1.8} />, vender: <ShoppingBag size={17} strokeWidth={1.8} />,
@@ -63,6 +68,7 @@ export function ModelosCard() {
 function ModalModelos({ onFechar }: { onFechar: () => void }) {
   const [q, setQ] = useState("");
   const [objetivo, setObjetivo] = useState<Objetivo | null>(null);
+  const [tipo, setTipo] = useState<TipoGatilho | null>(null);
   const buscaRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -76,12 +82,12 @@ function ModalModelos({ onFechar }: { onFechar: () => void }) {
 
   const filtrados = useMemo(() => {
     const termo = normalizar(q.trim());
-    return MODELOS.filter((m) => (!objetivo || m.objetivo === objetivo) && (!termo || normalizar(m.nome + " " + m.descricao).includes(termo)));
-  }, [q, objetivo]);
-  const filtrando = !!objetivo || !!q.trim();
+    return MODELOS.filter((m) => (!objetivo || m.objetivo === objetivo) && (!tipo || (m.tipo ?? "comentario") === tipo) && (!termo || normalizar(m.nome + " " + m.descricao + " " + GATILHOS[m.tipo ?? "comentario"].rotulo).includes(termo)));
+  }, [q, objetivo, tipo]);
+  const filtrando = !!objetivo || !!tipo || !!q.trim();
   const recomendados = filtrados.filter((m) => m.recomendado);
   const resto = filtrando ? filtrados : filtrados.filter((m) => !m.recomendado);
-  const tituloFiltro = objetivo ? OBJETIVOS.find((o) => o.id === objetivo)!.rotulo : q.trim() ? `Resultados para “${q.trim()}”` : "Descubra mais modelos";
+  const tituloFiltro = objetivo ? OBJETIVOS.find((o) => o.id === objetivo)!.rotulo : tipo ? GATILHOS[tipo].rotulo : q.trim() ? `Resultados para “${q.trim()}”` : "Descubra mais modelos";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "var(--m-scrim)", padding: 16 }} onClick={onFechar}>
@@ -97,13 +103,11 @@ function ModalModelos({ onFechar }: { onFechar: () => void }) {
 
         <div className="flex flex-1 min-h-0">
           <aside className="shrink-0 flex flex-col overflow-y-auto m-modelos-aside" style={{ width: 236, padding: "0 12px 16px 20px", borderRight: "1px solid var(--m-divider)" }}>
-            <ItemNav ativo={!objetivo} onClick={() => setObjetivo(null)} icone={<LayoutGrid size={17} strokeWidth={1.8} />} badge={MODELOS.length}>Todos os modelos</ItemNav>
+            <ItemNav ativo={!objetivo && !tipo} onClick={() => { setObjetivo(null); setTipo(null); }} icone={<LayoutGrid size={17} strokeWidth={1.8} />} badge={MODELOS.length}>Todos os modelos</ItemNav>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--m-text-dim)", margin: "18px 0 6px 8px" }}>Por objetivo</div>
-            {OBJETIVOS.map((o) => <ItemNav key={o.id} ativo={objetivo === o.id} onClick={() => setObjetivo(o.id)} icone={ICONE_OBJETIVO[o.id]}>{o.rotulo}</ItemNav>)}
-            <div className="flex items-start" style={{ gap: 10, marginTop: "auto", background: "var(--m-tint)", borderRadius: 14, padding: 14 }}>
-              <Filter size={16} style={{ color: "var(--accent)", flex: "0 0 auto", marginTop: 2 }} />
-              <span style={{ fontSize: 12, color: "var(--m-text-body)", lineHeight: 1.5 }}>Todos os modelos funcionam com <b>comentário no post ou reel</b>.</span>
-            </div>
+            {OBJETIVOS.map((o) => <ItemNav key={o.id} ativo={objetivo === o.id} onClick={() => { setObjetivo(o.id); setTipo(null); }} icone={ICONE_OBJETIVO[o.id]}>{o.rotulo}</ItemNav>)}
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--m-text-dim)", margin: "18px 0 6px 8px" }}>Por gatilho</div>
+            {TIPOS.map((t) => <ItemNav key={t} ativo={tipo === t} onClick={() => { setTipo(t); setObjetivo(null); }} icone={ICONE_TIPO[t]}>{GATILHOS[t].rotulo}</ItemNav>)}
           </aside>
 
           <div className="flex-1 min-w-0 overflow-y-auto m-modelos-corpo" style={{ padding: "0 28px 24px 24px" }}>
@@ -172,7 +176,7 @@ function CardModelo({ m, grande }: { m: Modelo; grande?: boolean }) {
       <div style={{ fontSize: grande ? 16.5 : 15, fontWeight: 800, letterSpacing: "-.02em", lineHeight: 1.25, marginTop: 14 }}>{m.nome}</div>
       <div className="m-pretty" style={{ fontSize: grande ? 13.5 : 12.5, color: "var(--m-text-dim)", lineHeight: 1.5, marginTop: 6 }}>{m.descricao}</div>
       <div className="flex items-center" style={{ gap: 7, marginTop: "auto", paddingTop: 14, fontSize: 12.5, fontWeight: 600, color: "var(--m-text-body)" }}>
-        <Zap size={14} style={{ color: "var(--accent)" }} /> Automação rápida
+        <Zap size={14} style={{ color: "var(--accent)" }} /> {GATILHOS[m.tipo ?? "comentario"].rotulo}
       </div>
     </Link>
   );

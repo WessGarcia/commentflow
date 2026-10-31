@@ -31,6 +31,8 @@ model Account {
 model Flow {
   id            String        @id @default(cuid())
   name          String
+  /// comentario | live | story_resposta | story_mencao | reacao (lib/gatilhos.ts)
+  tipo          String        @default("comentario")
   enabled       Boolean       @default(true)
   scope         FlowScope     @default(ALL_POSTS)
   mediaId       String? // only used when scope = SPECIFIC_POST
@@ -39,6 +41,8 @@ model Flow {
   publicReplies String[]      @default([]) // one is picked at random to avoid looking robotic
   dmMessage     String? // comment -> DM simples (private reply); null = sem DM simples
   dmFlow        Json? // fluxo multi-passo com quick replies: { entry, steps: { id: { text, quickReplies } } }
+  grafo         Json? // construtor visual: { inicio, nos: [...] } (lib/grafo.ts); quando existe, vale no lugar do dmFlow/dmMessage
+  execucoes     Execucao[]
   account       Account?      @relation(fields: [accountId], references: [id])
   accountId     String?
   createdAt     DateTime      @default(now())
@@ -148,4 +152,41 @@ model Notificacao {
 model Configuracao {
   chave String @id
   valor String
+}
+
+/// Uma pessoa andando pelo grafo de uma automação (construtor visual).
+/// status: andando | aguardando (botão) | espera (atraso) | coleta | concluida | parada_janela | erro
+model Execucao {
+  id         String    @id @default(cuid())
+  flow       Flow      @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  flowId     String
+  igsid      String
+  commentId  String?
+  /// a resposta privada ao comentário só pode ser usada uma vez
+  privadaUsada Boolean @default(false)
+  noAtual    String?
+  status     String    @default("andando")
+  proximaEm  DateTime?
+  erro       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  cliques    Clique[]
+
+  @@index([status, proximaEm])
+  @@index([igsid, status])
+}
+
+/// Link rastreado (/r/:id): cada link mandado pelo construtor vira um, e o clique fica gravado.
+model Clique {
+  id         String    @id @default(cuid())
+  execucao   Execucao? @relation(fields: [execucaoId], references: [id], onDelete: SetNull)
+  execucaoId String?
+  igsid      String?
+  flowId     String?
+  url        String
+  cliques    Int       @default(0)
+  primeiroEm DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([igsid])
 }

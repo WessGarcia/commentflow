@@ -4,7 +4,7 @@ import { toFlowDTO } from "@/lib/flowTypes";
 import { simplesDoFluxo, simplesDoModelo, simplesEmBranco } from "@/lib/modelos";
 import { contaConectada } from "@/lib/painel";
 import { BancoFora } from "../_ui/banco-fora";
-import { EditorAvancado } from "./avancado";
+import { Construtor } from "./construtor";
 import { AutomacaoSimples } from "./simples";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
  *
  *   sem avancado   o formulário de três passos, por onde todo mundo começa.
  *                  ?modelo=id abre um modelo; ?editar=id abre uma salva.
- *   ?avancado=1    a conversa com vários passos e botões (?editar=id).
+ *   ?avancado=1    o construtor visual: passos, esperas, condições (?editar=id).
  *
  * Os dois salvam a MESMA automação; trocar de modo é trocar a URL. Uma
  * conversa que não cabe nos três passos sempre abre no avançado.
@@ -31,7 +31,7 @@ export default async function AutomacaoPage({ searchParams }: { searchParams: Pr
   const fluxo = registro ? toFlowDTO(registro) : null;
 
   const simples = fluxo ? simplesDoFluxo(fluxo) : sp.modelo ? simplesDoModelo(sp.modelo) ?? simplesEmBranco() : simplesEmBranco();
-  if (sp.avancado === "1" || !simples) return <EditorAvancado fluxo={fluxo} />;
+  if (sp.avancado === "1" || !simples) return <Construtor key={fluxo?.id ?? "novo"} fluxo={fluxo} />;
 
   return <AutomacaoSimples key={fluxo?.id ?? sp.modelo ?? "novo"} inicial={simples} id={fluxo?.id ?? null} usuario={conta?.username ?? null} />;
 }

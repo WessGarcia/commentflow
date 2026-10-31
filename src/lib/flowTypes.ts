@@ -78,6 +78,7 @@ export function buildStepMessage(
 export interface FlowDTO {
   id: string;
   name: string;
+  tipo: string;
   enabled: boolean;
   scope: "ALL_POSTS" | "SPECIFIC_POST";
   mediaId: string | null;
@@ -86,12 +87,14 @@ export interface FlowDTO {
   publicReplies: string[];
   dmMessage: string | null;
   dmFlow: DmFlow | null;
+  grafo: unknown;
 }
 
-export function toFlowDTO(f: Omit<FlowDTO, "dmFlow"> & { dmFlow: unknown }): FlowDTO {
+export function toFlowDTO(f: Omit<FlowDTO, "dmFlow" | "grafo" | "tipo"> & { dmFlow: unknown; grafo?: unknown; tipo?: string }): FlowDTO {
   return {
     id: f.id,
     name: f.name,
+    tipo: f.tipo ?? "comentario",
     enabled: f.enabled,
     scope: f.scope,
     mediaId: f.mediaId,
@@ -100,5 +103,6 @@ export function toFlowDTO(f: Omit<FlowDTO, "dmFlow"> & { dmFlow: unknown }): Flo
     publicReplies: f.publicReplies,
     dmMessage: f.dmMessage,
     dmFlow: asDmFlow(f.dmFlow),
+    grafo: f.grafo ?? null,
   };
 }

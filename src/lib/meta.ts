@@ -1,7 +1,7 @@
 import { env } from "@/lib/env";
 import { avisarReconexao } from "@/lib/notificacoes";
 
-const base = () => `https://graph.facebook.com/${env.graphVersion}`;
+export const base = () => `${env.graphBaseUrl}/${env.graphVersion}`;
 
 export interface IgCredentials {
   accessToken: string;
@@ -80,6 +80,34 @@ export function sendDm(
     messaging_type: "RESPONSE",
     message: buildMessage(text, quickReplies),
   });
+}
+
+/** Any message body (text, attachment, template) to a comment (private reply) or a user. */
+export function sendRaw(
+  creds: IgCredentials,
+  recipient: { comment_id?: string; id?: string },
+  message: Record<string, unknown>,
+): Promise<GraphResult> {
+  return graphPost(`${base()}/${creds.igUserId}/messages`, creds.accessToken, {
+    recipient,
+    messaging_type: "RESPONSE",
+    message,
+  });
+}
+
+export type BotaoTemplate = { type: "web_url"; url: string; title: string } | { type: "postback"; payload: string; title: string };
+
+/** Generic template: title (max 80) + up to 3 buttons (link or postback). */
+export function templateComBotoes(titulo: string, botoes: BotaoTemplate[], imagem?: string) {
+  return {
+    attachment: {
+      type: "template",
+      payload: {
+        template_type: "generic",
+        elements: [{ title: titulo.slice(0, 80), ...(imagem ? { image_url: imagem } : {}), buttons: botoes.slice(0, 3) }],
+      },
+    },
+  };
 }
 
 /** Comment -> DM (private reply). Optionally with quick replies. */

@@ -1,8 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { env } from "@/lib/env";
 import { getActiveCredentials } from "@/lib/credentials";
-import { sendDm, type GraphResult } from "@/lib/meta";
+import { base, sendDm, type GraphResult } from "@/lib/meta";
 import { notificar } from "@/lib/notificacoes";
 
 /**
@@ -89,7 +88,7 @@ async function completarPerfil(contactId: string, igsid: string) {
   try {
     const creds = await getActiveCredentials();
     if (!creds.accessToken) return;
-    const r = await fetch(`https://graph.facebook.com/${env.graphVersion}/${igsid}?fields=username,name&access_token=${encodeURIComponent(creds.accessToken)}`);
+    const r = await fetch(`${base()}/${igsid}?fields=username,name&access_token=${encodeURIComponent(creds.accessToken)}`);
     if (!r.ok) return;
     const p = (await r.json()) as { username?: string; name?: string };
     if (p.username || p.name) await prisma.contact.update({ where: { id: contactId }, data: { username: p.username ?? undefined, nome: p.name ?? undefined } });

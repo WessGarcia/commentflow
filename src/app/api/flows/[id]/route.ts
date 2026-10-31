@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { flowInputSchema } from "@/lib/validation";
+import { flowPatchSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,9 +18,9 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
 export async function PATCH(req: NextRequest, { params }: Ctx) {
   const { id } = await params;
   const body = await req.json().catch(() => null);
-  const parsed = flowInputSchema.partial().safeParse(body);
+  const parsed = flowPatchSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+    return Response.json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos." }, { status: 400 });
   }
 
   const d = parsed.data;
@@ -29,6 +29,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       where: { id },
       data: {
         ...(d.name !== undefined ? { name: d.name } : {}),
+        ...(d.tipo !== undefined ? { tipo: d.tipo } : {}),
         ...(d.enabled !== undefined ? { enabled: d.enabled } : {}),
         ...(d.scope !== undefined ? { scope: d.scope } : {}),
         ...(d.mediaId !== undefined ? { mediaId: d.mediaId ?? null } : {}),
@@ -44,6 +45,9 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
                 ? (d.dmFlow as Prisma.InputJsonValue)
                 : Prisma.JsonNull,
             }
+          : {}),
+        ...(d.grafo !== undefined
+          ? { grafo: d.grafo ? (d.grafo as Prisma.InputJsonValue) : Prisma.JsonNull }
           : {}),
       },
     });

@@ -164,6 +164,7 @@ META_REDIRECT_URI="SEU-ENDERECO/api/auth/meta/callback"
 IG_VERIFY_TOKEN="o primeiro código gerado"
 ENCRYPTION_KEY="o segundo código gerado"
 PAINEL_SENHA="uma senha forte, só sua"
+APP_URL="SEU-ENDERECO"
 ```
 
 A `PAINEL_SENHA` é a senha para entrar no painel. **Ela é obrigatória para
@@ -217,6 +218,10 @@ Em **Webhooks**, no seletor do topo escolha **Instagram** e clique em
    - `comments`: os comentários
    - `messages`: os directs e os toques nos botões
    - `messaging_postbacks`: toques em botões de alguns aparelhos
+   - `live_comments` *(opcional)*: só se for usar o gatilho **Comentário na live**
+   - `message_reactions` *(opcional)*: só se for usar o gatilho **Reação no direct**
+
+   Resposta e menção no story chegam pelo campo `messages`, que você já assinou.
 
 ✅ A Meta aceitou o endereço (sem erro vermelho) e os três campos aparecem como
 assinados.
@@ -270,7 +275,9 @@ Instagram** de novo.
 
 ## Etapa 10: criar a primeira automação 🖥️
 
-1. Menu **Automações → Nova automação**.
+1. Menu **Automações → Nova automação**. O pop-up de modelos filtra por
+   objetivo e por gatilho: comentário no post, comentário na live, resposta ao
+   story, menção no story ou reação no direct.
 2. Preencha:
    - **Nome da automação:** `Teste`
    - **Onde:** Todos os posts
