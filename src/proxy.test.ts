@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 import { criarSessao } from "@/lib/sessao";
-import { middleware as portao } from "@/middleware";
+import { proxy as portao } from "@/proxy";
 
 const pedir = (caminho: string, headers: Record<string, string> = {}) =>
   new NextRequest(new URL(caminho, "http://painel.exemplo.com"), { headers: { host: "painel.exemplo.com", ...headers } });

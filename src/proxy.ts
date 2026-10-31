@@ -2,7 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { COOKIE_SESSAO, ehLocal, senhaDoPainel, sessaoValida } from "@/lib/sessao";
 
 export const config = {
-  runtime: "nodejs",
   matcher: ["/app/:path*", "/api/:path*"],
 };
 
@@ -11,7 +10,7 @@ export const config = {
 const LIVRES = ["/api/webhooks/", "/api/entrar", "/api/sair", "/api/saude"];
 
 /** Tranca o painel e as rotas internas atrás da senha (ver lib/sessao.ts). */
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   if (LIVRES.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
