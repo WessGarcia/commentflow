@@ -13,6 +13,10 @@ Painel (/app) ──OAuth──▶ /api/auth/meta/* ──▶ Account (token cri
 ```
 
 ## Componentes
+- **Portão do painel** (`src/proxy.ts`, convenção `proxy` do Next 16, sempre em
+  Node): tranca `/app` e `/api` atrás da `PAINEL_SENHA` (cookie assinado,
+  `src/lib/sessao.ts`). Webhook, entrar/sair e `/api/saude` ficam livres. Sem
+  senha, só abre em `localhost`.
 - **Webhook** (`src/app/api/webhooks/instagram/route.ts`): `GET` faz o
   handshake de verificação; `POST` valida a assinatura `X-Hub-Signature-256` e
   despacha eventos de `comments` e de `messaging`.

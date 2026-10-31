@@ -41,7 +41,7 @@ Assine **`comments`** e **`messages`**. Callback:
 `https://SEU-TUNEL/api/webhooks/instagram` · Verify token: `IG_VERIFY_TOKEN`.
 
 ## Evidências / pendências
-- Versões alvo: Node 24 (Docker), Postgres 16, Next 15, Prisma 6.
+- Versões alvo: Node 24 (Docker), Postgres 16, Next 16, Prisma 6, Zod 4.
 - Migração inicial (`0001_init`) + `0002_dmflow` incluídas.
 - **Pendente:** execução/validação real (ver [quality.md](quality.md)); encriptar
   também backups do banco; fila/retry; testes automatizados.

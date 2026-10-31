@@ -95,8 +95,9 @@ assistente do painel (que vale por cima do `.env`).
 
 ## 🏗️ Stack e estrutura
 
-Next.js (App Router, TypeScript) · PostgreSQL + Prisma · Zod · Tailwind ·
-React Flow · Docker Compose.
+Next.js 16 (App Router, TypeScript) · PostgreSQL + Prisma · Zod 4 · Tailwind ·
+React Flow · Docker Compose. Para quem desenvolve: `npm run check` (lint, tipos,
+testes) e CI no GitHub Actions.
 
 ```
 scripts/setup.mjs          instalador e verificação
@@ -114,7 +115,7 @@ docs/                      guia, deploy, arquitetura, prompts
 - [docs/DEPLOY.md](docs/DEPLOY.md): no ar 24 h na Render
 - [docs/prompts/00-setup.md](docs/prompts/00-setup.md): o prompt de instalação
 - [AGENTS.md](AGENTS.md): instruções para agentes e devs
-- [docs/architecture.md](docs/architecture.md) · [docs/setup.md](docs/setup.md) · [docs/quality.md](docs/quality.md)
+- [docs/architecture.md](docs/architecture.md) · [docs/setup.md](docs/setup.md) · [docs/quality.md](docs/quality.md) · [docs/harness.md](docs/harness.md) (desenvolvimento com agentes)
 
 ## ⚖️ Uso responsável
 
