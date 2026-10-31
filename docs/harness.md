@@ -143,7 +143,7 @@ não rodados.
   Antes, comparar a revisão nova do toolkit com a registrada aqui.
 - Rever quando: sair o Prisma 7 (dependências), um plugin pedir ESLint 10 nos
   peers, o toolkit mudar de revisão, ou um agente errar comando/regra deste repo.
-- Pendências: decidir a proteção do modo sem senha (revisão abaixo); autorizar o Context7 (`/mcp`), o `agent-browser` (next-dev-loop) e o marketplace do
+- Pendências: autorizar o Context7 (`/mcp`), o `agent-browser` (next-dev-loop) e o marketplace do
   Caveman; reduzir os avisos de lint (tabela em [quality.md](quality.md)); proposta
   do Prisma 7.
 
@@ -155,7 +155,7 @@ revisor rodou os esquemas reais no Zod 4.
 | Achado | Gravidade | Origem | Destino |
 |---|---|---|---|
 | Sem `PAINEL_SENHA`, o portão confiava em `X-Forwarded-Host` e aceitava `localhost.evil.com` | alta | já existia | **corrigido**: só o `Host` exato decide (testes novos) |
-| Sem senha, a porta 3000 do Docker fica aberta na rede e o `Host` pode ser forjado direto | alta | já existia | **proposta**: exigir senha sempre ou ligar a porta só em `127.0.0.1` (decisão do dono) |
+| Sem senha, a porta 3000 do Docker fica aberta na rede e o `Host` pode ser forjado direto | alta | já existia | **corrigido** (decisão do dono): Compose publica a porta só em `127.0.0.1`; testado: local 200, pela rede recusado |
 | Sem senha, um site qualquer pode fazer POST no painel local (CSRF) | média | já existia | proposta: conferir `Origin` nas rotas que mudam dados |
 | Login: tentativas em paralelo sem limite; cookie assinado com a própria senha; sair não revoga | baixa | já existia | proposta |
 | Mensagens padrão do Zod em inglês aparecem no painel (o Zod 4 mudou o texto) | baixa | texto mudou agora | proposta: mensagens em português nos esquemas do grafo |

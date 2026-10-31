@@ -23,7 +23,7 @@ O instalador cria o `.env` a partir do `.env.example`. Resumo:
 | `META_REDIRECT_URI` | Callback do OAuth (URL pública do túnel). |
 | `IG_VERIFY_TOKEN` | Token de verificação do webhook. |
 | `ENCRYPTION_KEY` | Criptografa tokens no banco (`openssl rand -base64 32`). |
-| `PAINEL_SENHA` | Senha para entrar no painel (o instalador gera). Sem ela, o painel tenta abrir só em `localhost`, mas a porta 3000 fica exposta na rede: defina sempre. |
+| `PAINEL_SENHA` | Senha para entrar no painel (o instalador gera). Sem ela, o painel só abre em `localhost` (no Docker, a porta 3000 só responde no próprio computador). Para abrir de fora, pelo túnel ou na Render, a senha é obrigatória. |
 | `APP_URL` | Endereço público do painel (links rastreados do construtor). Se vazio, usa a origem do `META_REDIRECT_URI`. |
 | `GRAPH_BASE_URL` | Só para testes: aponta as chamadas da Graph API para outro servidor. |
 | `IG_ACCESS_TOKEN` / `IG_USER_ID` | Fallback manual (opcional após OAuth). |

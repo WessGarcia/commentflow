@@ -69,7 +69,7 @@ assistente do painel (que vale por cima do `.env`).
 
 | Variável            | O que é |
 | ------------------- | ------- |
-| `PAINEL_SENHA`      | Senha do painel (o instalador gera). Sem ela, o painel tenta abrir só em `localhost`, mas a porta 3000 fica exposta na rede: defina sempre. |
+| `PAINEL_SENHA`      | Senha do painel (o instalador gera). Sem ela, o painel só abre em `localhost` (no Docker, a porta 3000 só responde no próprio computador). Para abrir de fora, pelo túnel ou na Render, a senha é obrigatória. |
 | `ENCRYPTION_KEY`    | Criptografa os acessos no banco (AES-256-GCM). Não perca. |
 | `IG_VERIFY_TOKEN`   | Token que a Meta usa para verificar o webhook. |
 | `APP_URL`           | Endereço público do painel (links rastreados, assistente). |

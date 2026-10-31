@@ -28,8 +28,9 @@ services:
     # DATABASE_URL is forced to the db service (overrides any value in .env)
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/commentflow?schema=public"
+    # só no próprio computador: o túnel (cloudflared) chega por localhost; a rede não
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
 
 volumes:
   pgdata:
