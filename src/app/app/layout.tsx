@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Caveat, Plus_Jakarta_Sans } from "next/font/google";
+// Fontes servidas pelo próprio app (Fontsource, OFL): o build não depende de
+// baixar nada do Google, então funciona em qualquer Docker.
+import "@fontsource-variable/plus-jakarta-sans";
+import "@fontsource/caveat/500.css";
 import "./painel.css";
 import { senhaDoPainel } from "@/lib/sessao";
 import { PainelShell } from "./shell";
 
-// As fontes do painel antigo da Mandei: Plus Jakarta Sans no texto e Caveat no banner.
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", weight: ["400", "500", "600", "700", "800"], display: "swap" });
-const caveat = Caveat({ subsets: ["latin"], variable: "--font-caveat", weight: ["500"], display: "swap" });
 
 export const metadata: Metadata = {
   title: "CommentFlow · Painel",
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <PainelShell fontes={`${jakarta.variable} ${caveat.variable}`} comSenha={Boolean(senhaDoPainel())}>{children}</PainelShell>;
+  return <PainelShell fontes="" comSenha={Boolean(senhaDoPainel())}>{children}</PainelShell>;
 }

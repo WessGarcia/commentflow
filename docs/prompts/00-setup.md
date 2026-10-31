@@ -1,46 +1,142 @@
-# Prompt — configurar e rodar o CommentFlow
+# Prompt: instalar o CommentFlow e ligar o Instagram
 
-## Atalho
+## Atalho (cole no seu agente)
 
-Cole no seu agente (Claude Code, Codex, etc.) com acesso ao diretório de destino:
-
-```text
-Leia https://raw.githubusercontent.com/gabrieltabarkiewicz/commentflow/main/docs/prompts/00-setup.md e execute o setup neste diretório.
-```
-
-> A linha acima só funciona quando o repositório é **público** (o `raw.githubusercontent.com`
-> exige autenticação em repo privado). Com o repo privado, clone-o e aponte para
-> o arquivo local `docs/prompts/00-setup.md`.
-
-## Prompt
-
-Cole num agente com acesso ao diretório do projeto (ou ao repositório clonado):
+Abra o Claude Code (ou outro agente de código) numa **pasta vazia** e cole:
 
 ```text
-Configure e rode o CommentFlow neste diretório.
-
-Contexto: app Next.js (App Router, TypeScript) + Postgres/Prisma que automatiza
-comentários do Instagram (resposta pública + comentário→DM + fluxos multi-passo
-com quick replies) usando a API oficial da Meta. Leia, nesta ordem: README.md,
-docs/setup.md, docs/architecture.md, AGENTS.md e PRODUCT.md.
-
-Faça:
-1. Verifique o ambiente (Docker, ou Node 22.19+ e Postgres). Prefira Docker.
-2. Crie o .env a partir de .env.example. Gere IG_VERIFY_TOKEN e ENCRYPTION_KEY
-   aleatórios. Peça ao usuário META_APP_ID, META_APP_SECRET e a URL pública do
-   túnel (para META_REDIRECT_URI). Não invente segredos nem os exponha.
-3. Suba com `docker compose up --build` (aplica migrations) ou, sem Docker,
-   `npm install && npm run prisma:migrate && npm run dev`.
-4. Valide: landing em / e painel em /app carregam; o webhook responde ao
-   handshake GET. Não conecte contas reais nem dispare mensagens sem o OK do
-   usuário.
-5. Relate: comando para rodar, URLs, pendências e a próxima tarefa.
-
-Restrições: somente APIs oficiais; não copiar/clonar produtos de terceiros; não
-versionar segredos; respeitar os Termos da Meta. Peça apenas o que for
-indispensável; siga o guia humano em docs/GUIA.md quando precisar de detalhe.
+Leia https://raw.githubusercontent.com/gabrieltabarkiewicz/commentflow/main/docs/prompts/00-setup.md e execute tudo, do começo ao fim.
 ```
 
-> Este prompt executa o setup e as validações locais. Para o passo a passo
-> manual (criar o app na Meta, túnel, conectar conta, testar botões), use o
-> [GUIA.md](../GUIA.md).
+O agente instala, liga o painel, cria o endereço público e te conduz pela Meta.
+Você só faz o que precisa ser você: clicar no site da Meta e no login do
+Facebook, e colar o ID e a chave do seu app.
+
+---
+
+## Instruções para o agente
+
+Você vai instalar o **CommentFlow** (automação de comentários e direct do
+Instagram pela API oficial da Meta) para uma pessoa **leiga**, do zero até o
+Instagram conectado. Fale em português simples, um passo por vez, sem jargão.
+Faça você mesmo tudo que der para fazer no computador. Peça à pessoa só o que
+depende dela, e espere a confirmação antes de seguir.
+
+### Regras
+
+- Nunca repita no chat a chave secreta do app, a `ENCRYPTION_KEY` ou o
+  `IG_VERIFY_TOKEN`. Pode mostrar a senha do painel uma vez, para a pessoa anotar.
+- Nunca versione nem envie o `.env` para lugar nenhum.
+- Não clique, não faça login e não aceite termos no site da Meta pela pessoa:
+  explique onde clicar e espere ela dizer que fez.
+- Peça licença antes de instalar programas (Docker, cloudflared).
+- Não mande mensagens nem comente em contas reais.
+- Somente APIs oficiais da Meta, dentro dos Termos dela.
+- Se algo falhar, leia a mensagem de erro, corrija e explique em uma frase o
+  que houve. Não pule etapa.
+
+### Fase 1: pegar o código e ligar o painel
+
+1. Se a pasta atual não tiver o projeto, clone:
+   `git clone https://github.com/gabrieltabarkiewicz/commentflow.git .`
+   (sem git: baixe o ZIP de https://github.com/gabrieltabarkiewicz/commentflow/archive/refs/heads/main.zip e extraia aqui).
+2. Confira se o **Docker** está instalado e ligado (`docker info`). Se não
+   estiver, peça licença e instale o Docker Desktop
+   (https://www.docker.com/products/docker-desktop/). Se a pessoa não puder
+   instalar, siga com Node 22.19+ e um Postgres (`node scripts/setup.mjs --local`).
+3. Rode o instalador: `node scripts/setup.mjs`. Ele cria o `.env`, gera os
+   segredos e a senha do painel, sobe o app e o banco e espera ficar no ar.
+4. Diga à pessoa: o painel está em `http://localhost:3000/app` e a senha é
+   **(a que o instalador mostrou)**. Peça para ela anotar a senha.
+
+### Fase 2: endereço público (a Meta precisa alcançar o painel)
+
+Pergunte qual caminho ela prefere:
+
+- **A) Testar no computador (grátis, agora):** um túnel do Cloudflare. O
+  computador precisa ficar ligado, e o endereço muda se o túnel reiniciar.
+- **B) Deixar no ar 24 h:** deploy na Render (cerca de US$ 14/mês, veja
+  `docs/DEPLOY.md`). Nesse caso, guie o deploy pelo DEPLOY.md e use a URL da
+  Render como endereço público. Na Render, as variáveis vão em *Environment*:
+  `PAINEL_SENHA`, `APP_URL` e, depois, as chaves da Meta (ou pelo assistente
+  do painel). A instalação local da Fase 1 continua útil para a pessoa
+  conhecer o painel, mas o CommentFlow de verdade passa a ser o da Render: as
+  Fases 3 e 4 usam o endereço da Render.
+
+Para o caminho A:
+1. Se o `cloudflared` não existir, peça licença e instale
+   (Windows: `winget install --id Cloudflare.cloudflared`; Mac:
+   `brew install cloudflared`; Linux: pacote oficial em
+   https://developers.cloudflare.com/cloudflared/downloads/).
+2. Rode **em segundo plano**, sem bloquear a conversa:
+   `cloudflared tunnel --url http://localhost:3000`. Leia na saída o endereço
+   `https://….trycloudflare.com`.
+3. Grave: `node scripts/setup.mjs endereco https://….trycloudflare.com`. O
+   comando reinicia o painel e mostra os valores para colar na Meta.
+4. Confira: `node scripts/setup.mjs verificar` precisa mostrar ✓ em
+   "o endereço público chega no painel" e "o webhook responde ao teste da Meta".
+
+### Fase 3: o app na Meta (a pessoa clica, você conduz)
+
+Abra para a pessoa o **assistente do painel**:
+`https://SEU-ENDERECO/app/ligar-meta`. Ele mostra as mesmas etapas, com
+botões de copiar e o status de cada uma. Conduza nesta ordem, uma etapa por
+mensagem, esperando ela dizer "feito":
+
+1. **Instagram pronto:** conta profissional e pública, ligada a uma Página do
+   Facebook que ela administra, e "Permitir acesso às mensagens" ligado
+   (Instagram → Configurações → Mensagens → Ferramentas conectadas).
+2. **Criar o app:** https://developers.facebook.com/apps/ → Criar app → caso
+   de uso **Outro** → tipo **Empresa**. Em *Adicionar produtos*: **Login do
+   Facebook para Empresas**, **Webhooks** e **Instagram**.
+3. **Configurações → Básico:** colar *Domínios do app*, *URL da Política de
+   Privacidade* e *URL de exclusão de dados* (rode
+   `node scripts/setup.mjs coordenadas` e passe os valores), escolher
+   categoria e ícone, salvar.
+4. **Chaves:** peça o **ID do app** e a **Chave secreta**. Ofereça dois
+   jeitos: ela cola no assistente do painel (etapa "Cole o ID e a chave
+   secreta"), ou cola aqui e você grava com
+   `node scripts/setup.mjs meta --app-id ID --app-secret CHAVE`. Não repita a
+   chave depois.
+5. **Login do Facebook para Empresas → Configurações:** colar a *URI de
+   redirecionamento* (`https://SEU-ENDERECO/api/auth/meta/callback`) e salvar.
+6. **Webhooks → Instagram:** colar a *URL de retorno de chamada* e o *Token de
+   verificação* (os dois estão no assistente e em `coordenadas`) →
+   **Verificar e salvar** → assinar `comments`, `messages` e
+   `messaging_postbacks` (e `live_comments`, `message_reactions` se for usar
+   esses gatilhos). Confira com `verificar`: "a Meta verificou o webhook" fica ✓.
+7. **Publicar:** Modo do app → **Ao vivo**. Explique que, para a própria
+   conta, não precisa de Análise do app.
+8. **Conectar:** ela abre `https://SEU-ENDERECO/app/ligar-meta` (pelo endereço
+   público, não pelo localhost), clica em **Conectar Instagram** e aceita
+   todas as permissões. Confira com `verificar`: "Instagram conectado" fica ✓.
+
+### Fase 4: primeira automação e teste
+
+1. Guie a pessoa até **Automações → Nova automação**, escolhendo um modelo
+   (ex.: "Enviar link automaticamente por DM"): trocar a palavra e o link,
+   publicar.
+2. Peça para ela comentar a palavra num post **com outra conta** do Instagram.
+3. Rode `node scripts/setup.mjs verificar` até aparecer "Tudo pronto".
+
+### Ao terminar, entregue um resumo curto
+
+- Endereço do painel e onde está a senha (`node scripts/setup.mjs senha`).
+- Se usou túnel: que ele precisa ficar ligado, e que, se o endereço mudar, é
+  só subir o túnel de novo e rodar `node scripts/setup.mjs endereco <novo>`
+  (e atualizar os três lugares na Meta, que o `coordenadas` lista).
+- Para desligar: `docker compose down`. Para ligar de novo: `docker compose up -d`.
+- O que ficou pendente, se ficou.
+
+### Se der problema
+
+| Sintoma | O que fazer |
+|---|---|
+| `docker compose` falha | Docker Desktop aberto e verde? Rode de novo. Veja `docker compose logs app`. |
+| "Verificar e salvar" da Meta dá erro | `verificar` precisa mostrar o webhook ✓. Túnel ligado? Endereço igual nos dois lados? |
+| Volta do login com "estado-invalido" | Ela clicou em Conectar pelo localhost: abrir pelo endereço público. |
+| Volta com "sem-conta-ig-business" | Instagram não é profissional, não está na Página, ou a Página não foi marcada nas permissões. |
+| Comentam e nada acontece | App em Ao vivo? Campo `comments` assinado? Perfil público? Túnel ligado? |
+| A resposta pública sai e o direct não | "Permitir acesso às mensagens" no Instagram. Um direct por comentário, até 7 dias. |
+
+Para detalhes de cada tela, use o [GUIA.md](../GUIA.md).

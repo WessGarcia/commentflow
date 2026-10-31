@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { DM_Sans, Playfair_Display, Space_Mono } from "next/font/google";
+import "@fontsource-variable/playfair-display/wght.css";
+import "@fontsource-variable/playfair-display/wght-italic.css";
+import "@fontsource-variable/dm-sans";
+import "@fontsource/space-mono/400.css";
+import "@fontsource/space-mono/700.css";
 import "./flow.css";
 
 /**
@@ -9,10 +13,6 @@ import "./flow.css";
 const VIDEO_URL = "";
 
 const GUIA = "https://github.com/gabrieltabarkiewicz/commentflow/blob/main/docs/GUIA.md";
-
-const serif = Playfair_Display({ subsets: ["latin"], weight: ["700", "900"], style: ["normal", "italic"], variable: "--f-serif" });
-const sans = DM_Sans({ subsets: ["latin"], weight: ["300", "400", "500", "700"], variable: "--f-sans" });
-const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--f-mono" });
 
 export const metadata: Metadata = {
   title: "Instalação do CommentFlow",
@@ -36,7 +36,7 @@ export default function FlowPage() {
   const video = embedDe(VIDEO_URL);
 
   return (
-    <div className={`flow ${serif.variable} ${sans.variable} ${mono.variable}`}>
+    <div className="flow">
       <header className="flow-top">
         <span className="flow-logo">
           <span className="flow-logo-dot" aria-hidden="true" /> CommentFlow

@@ -1,5 +1,8 @@
 /* Página /flow: mesmo visual da página de vendas (marketing/index.html). */
 .flow {
+  --f-serif: "Playfair Display Variable";
+  --f-sans: "DM Sans Variable";
+  --f-mono: "Space Mono";
   --f-bg: #07060b;
   --f-white: #f4f2f8;
   --f-g3: #c9c4d6;

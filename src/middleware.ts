@@ -6,8 +6,9 @@ export const config = {
   matcher: ["/app/:path*", "/api/:path*"],
 };
 
-// A Meta chama o webhook sem cookie; entrar e sair cuidam da própria sessão.
-const LIVRES = ["/api/webhooks/", "/api/entrar", "/api/sair"];
+// A Meta chama o webhook sem cookie; entrar e sair cuidam da própria sessão;
+// /api/saude só diz sim/não (o instalador consulta).
+const LIVRES = ["/api/webhooks/", "/api/entrar", "/api/sair", "/api/saude"];
 
 /** Tranca o painel e as rotas internas atrás da senha (ver lib/sessao.ts). */
 export function middleware(req: NextRequest) {

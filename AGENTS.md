@@ -13,7 +13,12 @@ Next.js (App Router, TypeScript) · PostgreSQL + Prisma · Zod · Docker Compose
 
 ## Comandos
 ```bash
-# Docker (recomendado): sobe app + banco e aplica migrations
+# Instalador (recomendado): .env, segredos, Docker, migrations e checagem
+node scripts/setup.mjs              # instala e liga
+node scripts/setup.mjs verificar    # diz o próximo passo da instalação
+node scripts/setup.mjs coordenadas  # valores para colar na Meta
+
+# Docker direto: sobe app + banco e aplica migrations
 docker compose up --build
 
 # Local (precisa de Node 22.19+ e Postgres)

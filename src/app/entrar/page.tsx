@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import "@fontsource-variable/plus-jakarta-sans";
 import { Lock } from "lucide-react";
 import { ehLocal, senhaDoPainel } from "@/lib/sessao";
 import "../app/painel.css";
-
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", weight: ["400", "500", "600", "700", "800"], display: "swap" });
 
 export const metadata: Metadata = {
   title: "Entrar · CommentFlow",
@@ -23,7 +21,7 @@ export default async function EntrarPage({ searchParams }: { searchParams: Promi
   const volta = sp.volta?.startsWith("/app") ? sp.volta : "/app";
 
   return (
-    <div className={`painel ${jakarta.variable}`} style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16, background: "var(--bg-primary)", color: "var(--text-primary)", fontFamily: "var(--font-sans)" }}>
+    <div className="painel" style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16, background: "var(--bg-primary)", color: "var(--text-primary)", fontFamily: "var(--font-sans)" }}>
       <div className="m-card rise-in" style={{ width: 400, maxWidth: "100%", padding: 28 }}>
         <div className="flex items-center" style={{ gap: 10 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}

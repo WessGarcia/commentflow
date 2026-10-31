@@ -6,8 +6,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: commentflow
-    ports:
-      - "5432:5432"
+    # sem porta publicada: o app fala com o banco pela rede interna do Compose
+    # (e não briga com um Postgres que já exista no computador)
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

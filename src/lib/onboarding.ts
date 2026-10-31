@@ -20,7 +20,7 @@ export async function estadoOnboarding(): Promise<Onboarding> {
   const primeiro = flows[0];
   const palavra = flows.some((f) => f.matchType === "ANY" || f.keywords.length > 0);
   const passos: PassoOnboarding[] = [
-    { id: "instagram", titulo: "Conectar o Instagram", texto: "A conta profissional que vai responder os comentários e mandar os directs.", feito: Boolean(conta), href: "/app/configuracoes", acao: "Conectar Instagram" },
+    { id: "instagram", titulo: "Conectar o Instagram", texto: "A conta profissional que vai responder os comentários e mandar os directs.", feito: Boolean(conta), href: "/app/ligar-meta", acao: "Ligar a Meta" },
     { id: "automacao", titulo: "Criar a primeira automação", texto: "Comece por um modelo pronto: troque a palavra e o link, salve.", feito: flows.length > 0, href: "/app/fluxos?modelos=1", acao: "Escolher um modelo" },
     { id: "palavra", titulo: "Escolher a palavra-chave", texto: "A palavra que, comentada, dispara a resposta e o direct.", feito: palavra, href: primeiro ? `/app/fluxos?editar=${primeiro.id}` : "/app/fluxos?modelos=1", acao: "Abrir a automação" },
     { id: "ligada", titulo: "Ligar e testar", texto: "Com a automação ligada, comente a palavra com outra conta e veja a resposta chegar.", feito: flows.some((f) => f.enabled), href: "/app/fluxos", acao: "Ligar a automação" },

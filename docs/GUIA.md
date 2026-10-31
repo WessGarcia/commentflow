@@ -10,6 +10,14 @@ Legenda: 🖥️ no seu computador · 🌐 no site da Meta · 📱 no app do Ins
 > estiver exatamente onde o guia diz, procure pelo nome parecido no menu da
 > esquerda do app. O que importa é o que cada etapa precisa deixar pronto.
 
+> **Atalhos que fazem a parte do computador por você:**
+> - Com um agente (Claude Code, Codex…): cole o prompt de
+>   [docs/prompts/00-setup.md](prompts/00-setup.md) e ele conduz tudo.
+> - Sem agente: `node scripts/setup.mjs` instala e liga; depois o painel tem
+>   **Configurações → Assistente: ligar a Meta**, com as etapas abaixo já
+>   preenchidas com os seus endereços, campos para o ID e a chave do app e o
+>   status de cada etapa. `node scripts/setup.mjs verificar` diz o que falta.
+
 ---
 
 ## Como a peça se encaixa (leia uma vez)

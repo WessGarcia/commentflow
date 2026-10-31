@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
-import { Instagram, KeyRound, Lock, Webhook } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Instagram, KeyRound, Lock, Webhook } from "lucide-react";
 import { getConfiguracoes } from "@/lib/painel";
 import { BancoFora } from "../_ui/banco-fora";
 import { Card, PageHeader, Pill, Tile } from "../_ui/ui";
@@ -39,7 +40,9 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
 
   return (
     <div className="rise-in">
-      <PageHeader titulo="Configurações" sub="A conexão com o Instagram e o que o CommentFlow precisa para responder sozinho." />
+      <PageHeader titulo="Configurações" sub="A conexão com o Instagram e o que o CommentFlow precisa para responder sozinho.">
+        <Link href="/app/ligar-meta" className="m-btn">Assistente: ligar a Meta <ArrowRight size={16} /></Link>
+      </PageHeader>
 
       {aviso && (
         <div role="status" className="m-card" style={{ padding: "14px 18px", marginBottom: 18, borderColor: aviso.ok ? "var(--success)" : "var(--danger)", color: aviso.ok ? "var(--success-text)" : "var(--danger-text)", fontWeight: 700, fontSize: 14 }}>

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { naoLidas } from "@/lib/conversas";
+import { carregarConfigMeta } from "@/lib/configMeta";
 import { contarNaoLidas } from "@/lib/notificacoes";
 import { env } from "@/lib/env";
 import { isEncryptionEnabled } from "@/lib/crypto";
@@ -126,6 +127,7 @@ export async function getPalavras() {
 }
 
 export async function getConfiguracoes() {
+  await carregarConfigMeta();
   const contas = await prisma.account.findMany({ orderBy: { createdAt: "desc" } });
   return {
     contas: contas.map((a) => ({

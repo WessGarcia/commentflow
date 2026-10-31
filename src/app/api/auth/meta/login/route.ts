@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import crypto from "node:crypto";
 import { env } from "@/lib/env";
+import { carregarConfigMeta } from "@/lib/configMeta";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,8 +17,10 @@ const SCOPES = [
 ];
 
 export async function GET(req: NextRequest) {
+  await carregarConfigMeta();
   if (!env.metaAppId) {
-    return new Response("META_APP_ID não configurado no .env", { status: 500 });
+    // ainda sem app da Meta: o assistente explica o que fazer
+    return new Response(null, { status: 303, headers: { Location: "/app/ligar-meta?falta=app" } });
   }
 
   const redirectUri =

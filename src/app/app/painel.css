@@ -8,6 +8,9 @@
  * Regra: nas telas, nunca escreva cor fixa. Use as variáveis.
  */
 .painel {
+  /* as fontes do painel antigo da Mandei: Plus Jakarta Sans no texto e Caveat no banner */
+  --font-jakarta: "Plus Jakarta Sans Variable";
+  --font-caveat: "Caveat";
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-hand: var(--font-caveat), cursive;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;

@@ -6,6 +6,8 @@ import { processMessaging } from "@/lib/processMessaging";
 import { registrarMensagem } from "@/lib/conversas";
 import { receberTexto } from "@/lib/motor";
 import { dispararPorMensagem } from "@/lib/disparo";
+import { anotarWebhook } from "@/lib/saude";
+import { carregarConfigMeta } from "@/lib/configMeta";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,12 +17,15 @@ export const dynamic = "force-dynamic";
  * Meta calls GET with hub.mode / hub.verify_token / hub.challenge.
  */
 export async function GET(req: NextRequest) {
+  await carregarConfigMeta();
   const sp = req.nextUrl.searchParams;
   const mode = sp.get("hub.mode");
   const token = sp.get("hub.verify_token");
   const challenge = sp.get("hub.challenge");
 
   if (mode === "subscribe" && token && token === env.igVerifyToken) {
+    // o teste do instalador manda challenge "commentflow-teste": não conta como verificação da Meta
+    if (challenge !== "commentflow-teste") await anotarWebhook("verificado");
     return new Response(challenge ?? "", { status: 200 });
   }
   return new Response("Forbidden", { status: 403 });
@@ -88,12 +93,15 @@ interface WebhookPayload {
  * - messaging events (someone tapped a quick reply / postback)
  */
 export async function POST(req: NextRequest) {
+  await carregarConfigMeta();
   const raw = await req.text();
   const sig = req.headers.get("x-hub-signature-256");
 
   if (!verifySignature(raw, sig, env.metaAppSecret)) {
     return new Response("Invalid signature", { status: 401 });
   }
+
+  void anotarWebhook("aviso");
 
   let payload: WebhookPayload;
   try {

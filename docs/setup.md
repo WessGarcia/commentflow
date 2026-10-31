@@ -6,8 +6,15 @@
 - Conta **Instagram Business/Creator** ligada a uma **Página do Facebook**.
 - Um **app na Meta** (Instagram, Webhooks, Facebook Login for Business).
 
+## Instalação
+`node scripts/setup.mjs` cria o `.env`, gera `IG_VERIFY_TOKEN`, `ENCRYPTION_KEY`
+e `PAINEL_SENHA`, sobe o Compose e espera o painel responder. Os outros
+comandos (`endereco`, `meta`, `coordenadas`, `verificar`, `senha`) estão no
+[README](../README.md). As chaves da Meta e o endereço público também podem ser
+salvos pelo assistente do painel (`/app/ligar-meta`), que vale por cima do `.env`.
+
 ## Variáveis de ambiente
-Copie `.env.example` para `.env` e preencha. Resumo:
+O instalador cria o `.env` a partir do `.env.example`. Resumo:
 
 | Variável | Para quê |
 | --- | --- |

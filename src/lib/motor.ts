@@ -5,6 +5,7 @@ import { getActiveCredentials } from "@/lib/credentials";
 import { sendRaw, templateComBotoes, type BotaoTemplate, type GraphResult, type IgCredentials } from "@/lib/meta";
 import { asGrafo, type Grafo, type No, type NoDe } from "@/lib/grafo";
 import { registrarEnvio } from "@/lib/conversas";
+import { carregarConfigMeta } from "@/lib/configMeta";
 
 /**
  * O motor do construtor visual. Cada pessoa que entra numa automação vira
@@ -35,12 +36,7 @@ export function lerPayload(p: string): { execId: string; destino: string | null 
 // ------------------------------------------------------------ links rastreados
 /** O endereço público do painel: APP_URL, ou a origem do META_REDIRECT_URI. */
 export function enderecoPublico(): string | null {
-  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
-  try {
-    return env.metaRedirectUri ? new URL(env.metaRedirectUri).origin : null;
-  } catch {
-    return null;
-  }
+  return env.enderecoPublico || null;
 }
 
 async function rastrear(url: string, exec: Exec): Promise<string> {
@@ -154,6 +150,7 @@ async function mexerNaEtiqueta(no: NoDe<"acao">, igsid: string) {
 export async function andar(execId: string, desde: string | null): Promise<void> {
   const exec = await prisma.execucao.findUnique({ where: { id: execId }, include: { flow: true } });
   if (!exec) return;
+  await carregarConfigMeta();
   const grafo = asGrafo(exec.flow.grafo);
   if (!grafo || !exec.flow.enabled) { await parar(exec.id, "concluida"); return; }
   const creds = await getActiveCredentials();

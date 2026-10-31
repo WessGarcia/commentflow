@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { env } from "@/lib/env";
+import { carregarConfigMeta } from "@/lib/configMeta";
 import { prisma } from "@/lib/db";
 import { encryptSecret } from "@/lib/crypto";
 
@@ -27,6 +28,7 @@ interface PageEntry {
 }
 
 export async function GET(req: NextRequest) {
+  await carregarConfigMeta();
   const sp = req.nextUrl.searchParams;
   const code = sp.get("code");
   const state = sp.get("state");
