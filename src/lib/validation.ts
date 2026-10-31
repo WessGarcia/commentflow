@@ -14,12 +14,12 @@ const flowStepSchema = z.object({
 export const dmFlowSchema = z
   .object({
     entry: z.string(),
-    steps: z.record(flowStepSchema),
+    steps: z.record(z.string(), flowStepSchema),
   })
   .superRefine((df, ctx) => {
     if (!df.steps[df.entry]) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: `entry "${df.entry}" não existe em steps`,
       });
     }
@@ -27,7 +27,7 @@ export const dmFlowSchema = z
       for (const qr of step.quickReplies ?? []) {
         if (qr.next && !df.steps[qr.next]) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: `passo "${id}": next "${qr.next}" inexistente`,
           });
         }
@@ -53,7 +53,7 @@ function checarGrafo(f: { tipo?: string; grafo?: z.infer<typeof GrafoSchema> | n
   if (!f.grafo) return;
   // comentário e live respondem com a resposta privada: o 1º passo tem regra própria
   const privada = !f.tipo || f.tipo === "comentario" || f.tipo === "live";
-  for (const erro of validarGrafo(f.grafo, privada)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: erro, path: ["grafo"] });
+  for (const erro of validarGrafo(f.grafo, privada)) ctx.addIssue({ code: "custom", message: erro, path: ["grafo"] });
 }
 
 export const flowInputSchema = flowCampos.superRefine(checarGrafo);
