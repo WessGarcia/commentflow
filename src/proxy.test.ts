@@ -42,4 +42,10 @@ describe("portão do painel", () => {
     const fora = portao(pedir("/api/flows"));
     expect(fora.status).toBe(401);
   });
+
+  it("sem senha: X-Forwarded-Host forjado não vira localhost", () => {
+    vi.stubEnv("PAINEL_SENHA", "");
+    expect(portao(pedir("/api/flows", { "x-forwarded-host": "localhost" })).status).toBe(401);
+    expect(portao(pedir("/api/flows", { host: "localhost.evil.com" })).status).toBe(401);
+  });
 });

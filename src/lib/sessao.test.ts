@@ -40,5 +40,6 @@ describe("ehLocal", () => {
   it("reconhece só o próprio computador", () => {
     for (const h of ["localhost:3000", "127.0.0.1:3000", "[::1]:3000", "LOCALHOST"]) expect(ehLocal(h)).toBe(true);
     for (const h of ["painel.trycloudflare.com", "commentflow.onrender.com", null]) expect(ehLocal(h)).toBe(false);
+    for (const h of ["localhost.evil.com", "127.0.0.1.nip.io", "localhost:3000.evil.com", "[::1].evil.com"]) expect(ehLocal(h)).toBe(false);
   });
 });

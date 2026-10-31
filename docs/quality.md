@@ -18,7 +18,7 @@ O CI (`.github/workflows/check.yml`) roda `npm ci`, `check`, `lint:typed` e
 - Assinatura do webhook da Meta (`signature.test.ts`).
 - Tokens criptografados: ida e volta, IV novo, adulteração, troca de chave (`crypto.test.ts`).
 - Sessão do painel: validade, troca de senha, cookie forjado (`sessao.test.ts`).
-- Portão do painel (`proxy.test.ts`): rotas livres, 401 na API, redirecionamento com volta, localhost sem senha.
+- Portão do painel (`proxy.test.ts`): rotas livres, 401 na API, redirecionamento com volta, localhost sem senha, `X-Forwarded-Host` e `Host` forjados.
 - Grafo do construtor: padrões do esquema, validação, ligações, conversão de automações antigas (`grafo.test.ts`).
 - Validação da API de automações e conversa antiga com botões (`validation.test.ts`).
 - Colunas do quadro de contatos (`quadro.test.ts`).
@@ -40,7 +40,7 @@ Começam como aviso; regra sem violação é erro. Reduzir ao mexer no arquivo.
 | `no-misused-promises` (tipado) | 35 | `onClick={async …}` no painel | envolver o handler |
 
 ## Estado verificado (2026-10-31)
-- `npm run check`: passa (0 erros de lint, 23 avisos; 46 testes).
+- `npm run check`: passa (0 erros de lint, 23 avisos; 47 testes).
 - `npm run build` (Next 16.4.3, Turbopack): passa; rota `Proxy` presente.
 - Servidor de produção local (`next start`): 16 rotas da fumaça com o status
   esperado; com `PAINEL_SENHA`, `/app` redireciona para `/entrar`, API dá 401 sem

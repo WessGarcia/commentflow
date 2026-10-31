@@ -16,7 +16,8 @@ export function proxy(req: NextRequest) {
 
   const senha = senhaDoPainel();
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-  if (!senha && ehLocal(host)) return NextResponse.next();
+  // sem senha, só o Host decide: X-Forwarded-Host vem de quem chama e passa por túnel/proxy
+  if (!senha && ehLocal(req.headers.get("host"))) return NextResponse.next();
   if (senha && sessaoValida(req.cookies.get(COOKIE_SESSAO)?.value, senha)) return NextResponse.next();
 
   if (pathname.startsWith("/api/")) {

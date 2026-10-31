@@ -38,6 +38,6 @@ export function senhaConfere(digitada: string, senha: string) {
 
 /** O painel está sendo aberto no próprio computador? */
 export function ehLocal(host: string | null) {
-  const h = (host ?? "").toLowerCase();
-  return h.startsWith("localhost") || h.startsWith("127.0.0.1") || h.startsWith("[::1]");
+  // nome exato, com porta opcional: "localhost.evil.com" não conta
+  return /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test((host ?? "").toLowerCase());
 }

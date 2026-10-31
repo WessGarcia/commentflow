@@ -47,22 +47,22 @@ skills; repetir o `graphify extract` depois de mudanças grandes no código.
 Instalar uma skill não autoriza o que ela faz (deploy, por exemplo, só sob pedido).
 
 ## Matriz de cobertura (2026-10-31)
-Estados: **validado** (rodou e foi conferido), **configurado** (instalado, sem uso
-real ainda), **reaproveitado**, **não se aplica**, **bloqueado**.
+Estados: **validado** (rodou e foi conferido), **descoberto** (o cliente listou a
+skill; ainda sem uso real), **configurado** (instalado, sem uso real ainda), **reaproveitado**, **não se aplica**, **bloqueado**.
 
 | Componente | Estado | Evidência / motivo |
 |---|---|---|
-| Superpowers 7.x | configurado (local) | instalado; carrega em sessão nova do Claude Code (não observável nesta sessão) |
-| Ponytail 5.3.3 | configurado (local) | idem; opções de webhook deixadas vazias (enviariam dados para fora) |
+| Superpowers 7.x | descoberto (local) | skills `superpowers:*` apareceram na própria sessão do setup depois da instalação |
+| Ponytail 5.3.3 | descoberto (local) | skills `ponytail:*` apareceram na sessão; opções de webhook vazias (enviariam dados para fora) |
 | Caveman | bloqueado | precisa adicionar o marketplace `JuliusBrussee/caveman` no perfil do usuário (fora do projeto); aguarda autorização |
 | RTK 0.45.0 | reaproveitado | gancho global `rtk hook claude` ativo; nenhum gancho duplicado |
-| Context7 | configurado (local) | plugin instalado; consulta real só numa sessão nova (nesta, usei a doc oficial do Next e do Zod) |
-| Graphify 0.9.38 | validado | 94 arquivos, 685 nós, 1684 ligações; 0 arquivos proibidos; `explain`/`query` responderam. SQL das migrations fica de fora (falta `graphifyy[sql]`) |
-| Skills Vercel (8) + find-skills | configurado (local) | nomes conferidos no frontmatter; descoberta na próxima sessão |
-| supabase-postgres-best-practices | configurado (local) | vale para Postgres com Prisma |
-| differential-review | configurado (local) | usado pelo prompt de revisão em modo diff |
-| next-bundle-optimizer | configurado (local) | roda só quando pedirem auditoria de bundle |
-| next-dev-loop | bloqueado | Next 16.4.3 + Turbopack já são compatíveis; falta o `agent-browser` 0.31.1+, que é instalação global |
+| Context7 | bloqueado (autorização) | plugin instalado, mas o servidor MCP pede login: rodar `/mcp` num terminal do Claude Code. Até lá, usar a doc oficial (foi o que o setup fez para Next e Zod) |
+| Graphify 0.9.38 | validado | 736 nós, 1793 ligações (refeito depois do `proxy.ts`); 0 arquivos proibidos; `explain`/`query` responderam. SQL das migrations fica de fora (falta `graphifyy[sql]`) |
+| Skills Vercel (8) + find-skills | descoberto (local) | nomes conferidos no frontmatter; listadas na sessão do setup |
+| supabase-postgres-best-practices | descoberto (local) | vale para Postgres com Prisma |
+| differential-review | descoberto (local) | usado pelo prompt de revisão em modo diff |
+| next-bundle-optimizer | descoberto (local) | roda só quando pedirem auditoria de bundle |
+| next-dev-loop | bloqueado | descoberto; Next 16.4.3 + Turbopack já são compatíveis; falta o `agent-browser` 0.31.1+, que é instalação global |
 | gh-fix-ci | não se aplica | é fluxo do Codex; o CI daqui é GitHub Actions simples |
 | shadcn | não se aplica | o painel usa componentes próprios (Tailwind) |
 | Sentry MCP | não se aplica | o projeto não usa Sentry |
@@ -72,8 +72,8 @@ real ainda), **reaproveitado**, **não se aplica**, **bloqueado**.
 | Plugins oficiais extras / aia-harness | não instalado | sem necessidade concreta |
 | Ganchos do cliente | só o do RTK | nenhum gancho novo; nenhum gancho de Git |
 | ESLint + regras do toolkit | validado | `npm run lint` 0 erros / 23 avisos; autochecagem das regras ok |
-| Vitest | validado | 46 testes em 7 arquivos |
-| CI (GitHub Actions) | configurado | `.github/workflows/check.yml`; roda no GitHub depois do push |
+| Vitest | validado | 47 testes em 7 arquivos |
+| CI (GitHub Actions) | configurado | `.github/workflows/check.yml` (Node 22 e 24); os mesmos passos passaram num clone limpo sem `.env`; no GitHub só depois do push |
 | Revisão de segurança (prompt 13) | configurado | [prompts/13-revisao-seguranca.md](prompts/13-revisao-seguranca.md) |
 | Harness2 | validado (método nativo) | ver abaixo; laboratório oficial não selecionado (falta `uv`, custo de API) |
 
@@ -143,6 +143,21 @@ não rodados.
   Antes, comparar a revisão nova do toolkit com a registrada aqui.
 - Rever quando: sair o Prisma 7 (dependências), um plugin pedir ESLint 10 nos
   peers, o toolkit mudar de revisão, ou um agente errar comando/regra deste repo.
-- Pendências: autorizar `agent-browser` (next-dev-loop) e o marketplace do
+- Pendências: decidir a proteção do modo sem senha (revisão abaixo); autorizar o Context7 (`/mcp`), o `agent-browser` (next-dev-loop) e o marketplace do
   Caveman; reduzir os avisos de lint (tabela em [quality.md](quality.md)); proposta
   do Prisma 7.
+
+## Revisão independente do setup (2026-10-31)
+Revisor só leitura (subagente com o modelo principal) no intervalo `1c5783f..045c654`.
+Sem regressão encontrada nas atualizações (Zod 4, Next 16, React 19); o próprio
+revisor rodou os esquemas reais no Zod 4.
+
+| Achado | Gravidade | Origem | Destino |
+|---|---|---|---|
+| Sem `PAINEL_SENHA`, o portão confiava em `X-Forwarded-Host` e aceitava `localhost.evil.com` | alta | já existia | **corrigido**: só o `Host` exato decide (testes novos) |
+| Sem senha, a porta 3000 do Docker fica aberta na rede e o `Host` pode ser forjado direto | alta | já existia | **proposta**: exigir senha sempre ou ligar a porta só em `127.0.0.1` (decisão do dono) |
+| Sem senha, um site qualquer pode fazer POST no painel local (CSRF) | média | já existia | proposta: conferir `Origin` nas rotas que mudam dados |
+| Login: tentativas em paralelo sem limite; cookie assinado com a própria senha; sair não revoga | baixa | já existia | proposta |
+| Mensagens padrão do Zod em inglês aparecem no painel (o Zod 4 mudou o texto) | baixa | texto mudou agora | proposta: mensagens em português nos esquemas do grafo |
+| `engines` aceitava Node 23; CI só testava 24 | baixa | introduzido agora | **corrigido**: `^22.19 \|\| ^24 \|\| >=26`, CI em 22 e 24 |
+| Docs diziam "só abre em localhost" e "tokens criptografados" sem condição | baixa | já existia | **corrigido** no README, setup e AGENTS |

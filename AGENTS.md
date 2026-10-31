@@ -75,7 +75,8 @@ npm run prisma:studio        # inspecionar o banco
 
 ## Segurança
 - Segredos nunca versionados (`.env` está no `.gitignore`).
-- Tokens de acesso criptografados em repouso (AES-256-GCM, `ENCRYPTION_KEY`).
+- Tokens de acesso criptografados em repouso (AES-256-GCM) quando há `ENCRYPTION_KEY`
+  (o instalador gera; sem ela, ficam em texto puro).
 - Assinatura dos webhooks verificada (`X-Hub-Signature-256`).
 - Revisão de segurança: [docs/prompts/13-revisao-seguranca.md](docs/prompts/13-revisao-seguranca.md)
   (só leitura, relatório privado fora do repositório).
