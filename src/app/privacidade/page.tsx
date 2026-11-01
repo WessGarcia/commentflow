@@ -46,7 +46,7 @@ export default function PrivacidadePage() {
           <li>
             <b style={{ color: "var(--text)" }}>Dono da conta:</b> no painel, em Configurações, clique em
             “Desconectar”. O acesso ao Instagram é apagado na hora. Você também pode remover o app em
-            Facebook → Configurações → Integrações comerciais.
+            Instagram → Configurações → Apps e sites.
           </li>
           <li>
             <b style={{ color: "var(--text)" }}>Quem comentou ou recebeu mensagem:</b> mande uma mensagem

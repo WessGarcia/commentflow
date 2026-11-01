@@ -8,8 +8,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const corpo = z.object({
-  appId: z.string().trim().regex(/^\d{6,20}$/, "O ID do app tem só números (Configurações do app → Básico).").or(z.literal("")).optional(),
-  appSecret: z.string().trim().regex(/^[a-f0-9]{32}$/i, "A chave secreta tem 32 letras e números (clique em Mostrar ao lado dela).").or(z.literal("")).optional(),
+  appId: z.string().trim().regex(/^\d{6,20}$/, "O ID do app do Instagram tem só números (Casos de uso → API do Instagram → Configuração da API com login do Instagram).").or(z.literal("")).optional(),
+  appSecret: z.string().trim().regex(/^[a-f0-9]{32}$/i, "A chave secreta do app do Instagram tem 32 letras e números (clique em Mostrar ao lado dela).").or(z.literal("")).optional(),
   endereco: z.string().trim().pipe(z.url("Cole o endereço completo, começando com https://")).refine((u) => u.startsWith("https://"), "A Meta só aceita endereço com https://.").or(z.literal("")).optional(),
 });
 

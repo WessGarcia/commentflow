@@ -159,8 +159,8 @@ async function meta() {
   const segredo = opcao("--app-secret");
   if (!id && !segredo) { falta("Use: node scripts/setup.mjs meta --app-id 123 --app-secret abc"); process.exit(1); }
   // confere os dois antes de gravar: nada fica pela metade
-  if (id && !/^\d{6,20}$/.test(id)) { falta("O ID do app tem só números (copie de Configurações do app → Básico)."); process.exit(1); }
-  if (segredo && !/^[a-f0-9]{32}$/i.test(segredo)) { falta("A chave secreta tem 32 letras e números (clique em Mostrar ao lado dela)."); process.exit(1); }
+  if (id && !/^\d{6,20}$/.test(id)) { falta("O ID do app do Instagram tem só números (Casos de uso → API do Instagram → Configuração da API com login do Instagram)."); process.exit(1); }
+  if (segredo && !/^[a-f0-9]{32}$/i.test(segredo)) { falta("A chave secreta do app do Instagram tem 32 letras e números (clique em Mostrar ao lado dela)."); process.exit(1); }
   if (id) { gravar("META_APP_ID", id); ok("ID do app gravado"); }
   if (segredo) { gravar("META_APP_SECRET", segredo); ok("chave secreta gravada (só neste computador)"); }
   reiniciar();
@@ -179,15 +179,17 @@ Configurações do app → Básico
   URL da Política de Privacidade ${base}/privacidade
   URL de exclusão de dados .... ${base}/privacidade
 
-Login do Facebook para Empresas → Configurações
-  URIs de redirecionamento do OAuth válidos
-    ${base}/api/auth/meta/callback
+Casos de uso → API do Instagram → Configuração da API com login do Instagram
+  ID e chave secreta do app do Instagram: node scripts/setup.mjs meta --app-id … --app-secret …
 
-Webhooks → objeto Instagram
-  URL de retorno de chamada ... ${base}/api/webhooks/instagram
-  Token de verificação ........ ${token}
-  Assinar os campos ........... comments, messages, messaging_postbacks
-  (opcionais) ................. live_comments, message_reactions
+  Configurar webhooks
+    URL de callback ........... ${base}/api/webhooks/instagram
+    Verificar token ........... ${token}
+    Ligar os campos ........... comments, messages, messaging_postbacks
+    (opcionais) ............... live_comments, message_reactions
+
+  Configurar o login da empresa no Instagram
+    URL de redirecionamento OAuth ${base}/api/auth/meta/callback
 
 Depois: publique o app (Modo do app → Ao vivo) e abra
   ${base}/app/ligar-meta  →  Conectar Instagram

@@ -7,26 +7,22 @@ import { encryptSecret } from "@/lib/crypto";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function home(req: NextRequest, meta: string) {
-  const url = new URL("/app/configuracoes", req.nextUrl.origin);
-  url.searchParams.set("meta", meta);
+// Os avisos que o motor usa (ver api/webhooks/instagram e lib/gatilhos.ts).
+const CAMPOS = "comments,live_comments,messages,messaging_postbacks,message_reactions";
+
+function home(meta: string) {
+  // endereço relativo: atrás de túnel/proxy o req.nextUrl.origin é o host interno (localhost:3000)
   return new Response(null, {
     status: 302,
     headers: {
-      Location: url.toString(),
+      Location: `/app/configuracoes?${new URLSearchParams({ meta })}`,
       // clear the CSRF cookie
       "Set-Cookie": "meta_oauth_state=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0",
     },
   });
 }
 
-interface PageEntry {
-  id?: string;
-  name?: string;
-  access_token?: string;
-  instagram_business_account?: { id?: string; username?: string };
-}
-
+/** Volta do login do Instagram: código → token curto → token de 60 dias → conta → avisos. */
 export async function GET(req: NextRequest) {
   await carregarConfigMeta();
   const sp = req.nextUrl.searchParams;
@@ -35,99 +31,78 @@ export async function GET(req: NextRequest) {
   const cookieState = req.cookies.get("meta_oauth_state")?.value;
 
   if (sp.get("error")) {
-    return home(req, `erro:${sp.get("error_description") ?? sp.get("error")}`);
+    return home(`erro:${sp.get("error_description") ?? sp.get("error")}`);
   }
-  if (!code) return home(req, "erro:sem-code");
+  if (!code) return home("erro:sem-code");
   if (!state || !cookieState || state !== cookieState) {
-    return home(req, "erro:estado-invalido");
+    return home("erro:estado-invalido");
   }
   if (!env.metaAppId || !env.metaAppSecret) {
-    return home(req, "erro:app-nao-configurado");
+    return home("erro:app-nao-configurado");
   }
 
-  const v = env.graphVersion;
+  const graph = `${env.graphBaseUrl}/${env.graphVersion}`;
   const redirectUri =
     env.metaRedirectUri || `${req.nextUrl.origin}/api/auth/meta/callback`;
 
   try {
-    // 1) code -> short-lived user token
-    const tokenRes = await fetch(
-      `https://graph.facebook.com/${v}/oauth/access_token?` +
+    // 1) code -> short-lived token (1 h)
+    const curtoRes = await fetch("https://api.instagram.com/oauth/access_token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: env.metaAppId,
+        client_secret: env.metaAppSecret,
+        grant_type: "authorization_code",
+        redirect_uri: redirectUri,
+        code,
+      }),
+    });
+    const curto = (await curtoRes.json()) as { access_token?: string };
+    if (!curtoRes.ok || !curto.access_token) return home("erro:falha-no-token");
+
+    // 2) short-lived -> long-lived token (60 days; lib/credentials renews it)
+    const longoRes = await fetch(
+      `${env.graphBaseUrl}/access_token?` +
         new URLSearchParams({
-          client_id: env.metaAppId,
+          grant_type: "ig_exchange_token",
           client_secret: env.metaAppSecret,
-          redirect_uri: redirectUri,
-          code,
+          access_token: curto.access_token,
         }),
     );
-    const tokenJson = (await tokenRes.json()) as { access_token?: string };
-    if (!tokenRes.ok || !tokenJson.access_token) {
-      return home(req, "erro:falha-no-token");
-    }
+    const longo = (await longoRes.json()) as { access_token?: string; expires_in?: number };
+    if (!longoRes.ok || !longo.access_token) return home("erro:falha-no-token");
+    const token = longo.access_token;
 
-    // 2) short-lived -> long-lived user token
-    const longRes = await fetch(
-      `https://graph.facebook.com/${v}/oauth/access_token?` +
-        new URLSearchParams({
-          grant_type: "fb_exchange_token",
-          client_id: env.metaAppId,
-          client_secret: env.metaAppSecret,
-          fb_exchange_token: tokenJson.access_token,
-        }),
+    // 3) who is it. user_id is the professional account id: the one the webhooks send
+    const euRes = await fetch(
+      `${graph}/me?` + new URLSearchParams({ fields: "user_id,username", access_token: token }),
     );
-    const longJson = (await longRes.json()) as { access_token?: string };
-    const userToken = longJson.access_token ?? tokenJson.access_token;
+    const eu = (await euRes.json()) as { user_id?: string | number; username?: string };
+    if (!euRes.ok || !eu.user_id) return home("erro:sem-conta-profissional");
+    const igUserId = String(eu.user_id);
 
-    // 3) list pages + connected IG business accounts (page tokens are long-lived)
-    const pagesRes = await fetch(
-      `https://graph.facebook.com/${v}/me/accounts?` +
-        new URLSearchParams({
-          fields: "id,name,access_token,instagram_business_account{id,username}",
-          access_token: userToken,
-        }),
+    // 4) subscribe the app to this account's webhooks; without it Meta sends nothing
+    const subRes = await fetch(
+      `${graph}/me/subscribed_apps?` +
+        new URLSearchParams({ subscribed_fields: CAMPOS, access_token: token }),
+      { method: "POST" },
     );
-    const pagesJson = (await pagesRes.json()) as { data?: PageEntry[] };
-    const pages = pagesJson.data ?? [];
+    if (!subRes.ok) console.error("subscribed_apps falhou", igUserId, await subRes.text());
 
-    let connected = 0;
-    let semAvisos = 0;
-    for (const page of pages) {
-      const ig = page.instagram_business_account;
-      if (!ig?.id || !page.access_token) continue;
+    const dados = {
+      username: eu.username ?? null,
+      accessToken: encryptSecret(token),
+      tokenExpiraEm: new Date(Date.now() + (longo.expires_in ?? 5_184_000) * 1000),
+    };
+    await prisma.account.upsert({
+      where: { igUserId },
+      update: dados,
+      create: { igUserId, ...dados },
+    });
 
-      // 4) subscribe the Page to this app; without it Meta sends no webhooks
-      const subRes = await fetch(
-        `https://graph.facebook.com/${v}/${page.id}/subscribed_apps?` +
-          new URLSearchParams({
-            subscribed_fields: "feed,messages,messaging_postbacks",
-            access_token: page.access_token,
-          }),
-        { method: "POST" },
-      );
-      if (!subRes.ok) {
-        semAvisos++;
-        console.error("subscribed_apps falhou", page.id, await subRes.text());
-      }
-
-      const token = encryptSecret(page.access_token);
-      await prisma.account.upsert({
-        where: { igUserId: ig.id },
-        update: { username: ig.username ?? null, accessToken: token },
-        create: {
-          igUserId: ig.id,
-          username: ig.username ?? null,
-          accessToken: token,
-        },
-      });
-      connected++;
-    }
-
-    if (connected === 0) return home(req, "erro:sem-conta-ig-business");
-    return home(
-      req,
-      semAvisos > 0 ? `sem-avisos:${connected}` : `conectado:${connected}`,
-    );
+    return home(subRes.ok ? "conectado:1" : "sem-avisos:1");
   } catch (e) {
-    return home(req, `erro:${String(e)}`);
+    return home(`erro:${String(e)}`);
   }
 }

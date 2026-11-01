@@ -59,17 +59,14 @@ Contatos, Palavras-chaves e Configurações.
 1. **Conta profissional.** No app do Instagram: *Configurações → Tipo de conta
    e ferramentas → Mudar para conta profissional*. Pode ser **Empresa** ou
    **Criador de conteúdo**.
-2. **Ligada a uma Página do Facebook.** *Configurações → Central de Contas*, ou
-   pelo Facebook em *Página → Configurações → Contas vinculadas → Instagram*.
-   Você precisa ser **administrador** dessa Página.
-3. **Perfil público.** A Meta não avisa comentários de contas privadas.
-4. **Liberar o acesso às mensagens.** Sem isso, a resposta no comentário
+2. **Perfil público.** A Meta não avisa comentários de contas privadas.
+3. **Liberar o acesso às mensagens.** Sem isso, a resposta no comentário
    funciona, mas o direct não sai:
    *Configurações → Mensagens e respostas ao story → Controles de mensagens →
    Ferramentas conectadas → ative "Permitir acesso às mensagens"*.
 
-✅ Instagram profissional, público, ligado a uma Página que você administra, com
-"Permitir acesso às mensagens" ativado.
+✅ Instagram profissional, público, com "Permitir acesso às mensagens" ativado.
+Não precisa de Página do Facebook: o login é pelo próprio Instagram.
 
 ---
 
@@ -112,18 +109,18 @@ tipo `https://commentflow-xxxx.onrender.com`, que fica no ar 24 horas.
 
 ## Etapa 3: criar o app na Meta 🌐
 
-1. Entre em https://developers.facebook.com/ com o **mesmo Facebook que
-   administra a Página**. Se for a primeira vez, aceite virar desenvolvedor.
+1. Entre em https://developers.facebook.com/ com o seu Facebook. Se for a
+   primeira vez, aceite virar desenvolvedor.
 2. **Meus apps → Criar app.**
    - Nome: algo como `CommentFlow - SuaMarca`.
-   - Caso de uso: **Outro** → tipo **Empresa** (Business).
+   - Caso de uso: **Gerenciar mensagens e conteúdo no Instagram**.
    - Se pedir um portfólio empresarial, escolha o seu ou crie um.
-3. No painel do app, em **Adicionar produtos**, adicione:
-   - **Login do Facebook para Empresas**
-   - **Webhooks**
-   - **Instagram** (API do Instagram com Login do Facebook)
+3. No menu da esquerda, abra **Casos de uso → API do Instagram →
+   Configuração da API com login do Instagram**. As Etapas 5, 6 e 7 acontecem
+   nessa tela.
 
-✅ O app aparece em "Meus apps", com os três produtos no menu da esquerda.
+✅ O app aparece em "Meus apps" e a tela *Configuração da API com login do
+Instagram* abre.
 
 ---
 
@@ -133,8 +130,6 @@ Em **Configurações do app → Básico**:
 
 | Campo | O que colocar |
 |---|---|
-| ID do app | Copie e guarde (vai no `.env`) |
-| Chave secreta do app | Clique em "Mostrar", copie e guarde (vai no `.env`). **Nunca mostre isso a ninguém.** |
 | Domínios do app | Só o domínio, sem `https://` (ex.: `palavras-aleatorias.trycloudflare.com`) |
 | URL da Política de Privacidade | `SEU-ENDERECO/privacidade` |
 | URL de exclusão de dados | `SEU-ENDERECO/privacidade` (a mesma página explica como apagar) |
@@ -143,12 +138,16 @@ Em **Configurações do app → Básico**:
 
 Clique em **Salvar alterações**.
 
-✅ Você tem o **ID do app** e a **Chave secreta** guardados, e a página
-`SEU-ENDERECO/privacidade` abre no navegador.
+✅ A página `SEU-ENDERECO/privacidade` abre no navegador.
 
 ---
 
 ## Etapa 5: colocar as chaves no CommentFlow 🖥️
+
+Na tela **Configuração da API com login do Instagram**, no topo, copie o **ID do
+app do Instagram** e a **Chave secreta do app do Instagram** (clique em
+"Mostrar"). Não são o ID e a chave de *Configurações → Básico*. **Nunca mostre a
+chave a ninguém.**
 
 Gere dois códigos aleatórios. No terminal, na pasta do projeto:
 
@@ -166,8 +165,8 @@ Abra o arquivo `.env` na pasta do projeto (se não existir, copie o
 `.env.example` com o nome `.env`) e preencha:
 
 ```
-META_APP_ID="o ID do app"
-META_APP_SECRET="a chave secreta do app"
+META_APP_ID="o ID do app do Instagram"
+META_APP_SECRET="a chave secreta do app do Instagram"
 META_REDIRECT_URI="SEU-ENDERECO/api/auth/meta/callback"
 IG_VERIFY_TOKEN="o primeiro código gerado"
 ENCRYPTION_KEY="o segundo código gerado"
@@ -199,30 +198,29 @@ Conectar Instagram.
 
 ## Etapa 6: liberar o retorno do login 🌐
 
-Em **Login do Facebook para Empresas → Configurações**:
+Na tela **Configuração da API com login do Instagram**, em **Configurar o login
+da empresa no Instagram**:
 
-1. Em **URIs de redirecionamento do OAuth válidos**, cole:
+1. Em **URL de redirecionamento OAuth**, cole:
    `SEU-ENDERECO/api/auth/meta/callback`
-   (no painel, em *Configurações → Webhook → Volta do login do Facebook*, tem o
+   (no painel, em *Configurações → Webhook → Volta do login do Instagram*, tem o
    link pronto com botão **Copiar**).
-2. Deixe ligados **Login no OAuth do cliente** e **Login do OAuth na Web**.
-3. **Salvar alterações.**
+2. **Salvar.**
 
-✅ O endereço aparece na lista de redirecionamentos válidos, **idêntico** ao do
-`.env`, letra por letra.
+✅ O endereço aparece na lista, **idêntico** ao do `.env`, letra por letra.
 
 ---
 
 ## Etapa 7: ligar os avisos (webhook) 🌐
 
-Em **Webhooks**, no seletor do topo escolha **Instagram** e clique em
-**Assinar este objeto** (ou *Configurar*):
+Na tela **Configuração da API com login do Instagram**, em **Configurar
+webhooks**:
 
-1. **URL de retorno de chamada:** `SEU-ENDERECO/api/webhooks/instagram`
+1. **URL de callback:** `SEU-ENDERECO/api/webhooks/instagram`
    (no painel: *Configurações → Webhook → Endereço do webhook → Copiar*).
-2. **Token de verificação:** o mesmo `IG_VERIFY_TOKEN` do `.env`.
+2. **Verificar token:** o mesmo `IG_VERIFY_TOKEN` do `.env`.
 3. Clique em **Verificar e salvar**. O painel precisa estar ligado nessa hora.
-4. Na lista de campos, clique em **Assinar** nestes três:
+4. Na lista de campos, ligue (**Assinar**) estes três:
    - `comments`: os comentários
    - `messages`: os directs e os toques nos botões
    - `messaging_postbacks`: toques em botões de alguns aparelhos
@@ -252,9 +250,9 @@ A Meta **só manda os avisos de comentário quando o app está publicado**.
 > análise só é necessária se você quiser conectar contas de **outras
 > pessoas** que não têm função no seu app.
 >
-> Se for conectar um Instagram administrado por **outro Facebook**, adicione
-> esse Facebook em **Funções do app → Funções → Adicionar pessoas** como
-> administrador e peça para a pessoa aceitar o convite.
+> Se for conectar o Instagram de **outra pessoa**, adicione essa conta em
+> **Funções do app → Funções → Testadores do Instagram** e peça para ela aceitar
+> o convite no Instagram (*Configurações → Apps e sites → Convites de teste*).
 
 ✅ O topo do painel do app mostra **Ao vivo** (ou "Publicado").
 
@@ -265,16 +263,18 @@ A Meta **só manda os avisos de comentário quando o app está publicado**.
 1. Abra **`SEU-ENDERECO/app/configuracoes`** (pelo endereço público, não pelo
    localhost).
 2. Clique em **Conectar Instagram**.
-3. Entre com o Facebook que administra a Página e, nas telas seguintes:
-   - selecione **a Página e a conta do Instagram** que vão usar o CommentFlow;
-   - deixe **todas as permissões marcadas** e clique em **Salvar / Continuar**.
+3. Abre o login do **Instagram**. Entre com a conta profissional e deixe
+   **todas as permissões marcadas**.
 4. Você volta para Configurações com a mensagem verde **"1 conta(s)
    conectada(s)"**.
 
-Nesse momento o CommentFlow também liga os avisos da sua Página para o app. Se
-aparecer o aviso *"Conta conectada, mas a Meta recusou ligar os avisos da
-Página"*, confira se você é administrador da Página e clique em **Conectar
-Instagram** de novo.
+Nesse momento o CommentFlow também liga os avisos da sua conta para o app. Se
+aparecer o aviso *"Conta conectada, mas a Meta recusou ligar os avisos"*,
+confira a Etapa 7 e clique em **Conectar Instagram** de novo.
+
+O acesso do Instagram vale 60 dias e o CommentFlow renova sozinho enquanto
+estiver recebendo comentários. Se o painel ficar parado mais de 60 dias, ele
+avisa para conectar de novo.
 
 ✅ Em **Configurações → Instagram** aparece o seu `@usuario` com a etiqueta
 **Conectada**, e no canto da barra lateral o cartão Instagram mostra a conta.
@@ -328,10 +328,11 @@ Instagram** de novo.
 | "Verificar e salvar" do webhook dá erro | O painel precisa estar ligado e abrindo em `SEU-ENDERECO/app`. O token na Meta tem que ser **idêntico** ao `IG_VERIFY_TOKEN`. Depois de mudar o `.env`, reinicie o painel. |
 | Erro de "URL bloqueada" ou "redirect_uri" ao conectar | O endereço da Etapa 6 tem que ser igual, letra por letra, ao `META_REDIRECT_URI` do `.env`. |
 | Volta com "estado-invalido" | Você clicou em Conectar pelo `localhost`. Abra o painel pelo **endereço público** e tente de novo. |
-| Volta com "sem-conta-ig-business" | O Instagram não é profissional, não está ligado à Página, ou você não marcou a Página na tela de permissões. Revise a Etapa 1 e conecte de novo. |
+| Volta com "sem-conta-profissional" | O Instagram não é profissional. Revise a Etapa 1 e conecte de novo. |
+| Volta com "falha-no-token" | O ID ou a chave do `.env` não são os do **app do Instagram** (Etapa 5), ou o endereço da Etapa 6 está diferente. |
 | Comentam e nada aparece em Comentários | Os avisos não estão chegando. Confira: app **Ao vivo** (Etapa 8), campo `comments` assinado (Etapa 7), túnel ainda aberto e com o mesmo endereço, perfil **público**. Depois clique em Conectar Instagram de novo. |
 | Aparece em Comentários como **Com erro** | O comentário chegou, mas a Meta recusou a resposta. Conecte o Instagram de novo, aceitando **todas** as permissões. |
-| A resposta pública sai, o direct não | Ative **"Permitir acesso às mensagens"** (Etapa 1, item 4). Cada comentário aceita **um** direct automático, e só se o comentário tiver até 7 dias. |
+| A resposta pública sai, o direct não | Ative **"Permitir acesso às mensagens"** (Etapa 1, item 3). Cada comentário aceita **um** direct automático, e só se o comentário tiver até 7 dias. |
 | Os botões do direct não respondem | Assine os campos `messages` e `messaging_postbacks` (Etapa 7). |
 | Funciona para você, mas não para outra conta que comenta | Com o app sem Análise, a Meta às vezes só entrega para contas com função no app. Para testar, adicione a conta como **Testador do Instagram** em *Funções do app*. |
 | O endereço do túnel mudou | Refaça as Etapas 4 (domínio e privacidade), 5 (`META_REDIRECT_URI`), 6 e 7 com o endereço novo e reinicie o painel. |

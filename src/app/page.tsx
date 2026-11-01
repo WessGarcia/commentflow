@@ -10,7 +10,7 @@ const steps = [
   {
     n: 1,
     title: "Conecte seu Instagram",
-    text: "Um clique, login pelo Facebook. Sem copiar token na mão.",
+    text: "Um clique, login pelo Instagram. Sem copiar token na mão.",
   },
   {
     n: 2,
@@ -117,7 +117,7 @@ const faqs = [
   },
   {
     q: "Funciona com qual conta?",
-    a: "Conta Instagram Business ou Creator ligada a uma Página do Facebook.",
+    a: "Conta Instagram profissional (Empresa ou Criador). Não precisa de Página do Facebook.",
   },
 ];
 

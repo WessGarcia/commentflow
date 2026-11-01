@@ -8,7 +8,7 @@ import { quando } from "../_ui/fmt";
 
 export type ContaDTO = { id: string; igUserId: string; username: string | null; conectada: boolean; desde: string };
 
-/** Contas conectadas pelo login do Facebook, com o botão de desconectar. */
+/** Contas conectadas pelo login do Instagram, com o botão de desconectar. */
 export function Contas({ contas }: { contas: ContaDTO[] }) {
   const router = useRouter();
   const [confirmar, modalConfirmar] = useConfirmar();

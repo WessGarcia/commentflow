@@ -28,11 +28,13 @@ Painel (/app) ──OAuth──▶ /api/auth/meta/* ──▶ Account (token cri
   passo alvo sem precisar de sessão no servidor.
 - **Graph API** (`src/lib/meta.ts`): `replyToComment` e `sendDm` (recipient por
   `comment_id` ou `id`), com suporte a `quick_replies`.
-- **OAuth** (`src/app/api/auth/meta/*`): login do Facebook, troca de code por
-  token (short→long-lived), descoberta da conta IG Business e persistência do
-  token da Página (criptografado).
+- **OAuth** (`src/app/api/auth/meta/*`): login do Instagram (API do Instagram
+  com login do Instagram, `graph.instagram.com`), troca de code por token
+  (curto → 60 dias), `/me` (o `user_id` profissional é o id dos webhooks),
+  `POST /me/subscribed_apps` e persistência do token (criptografado).
 - **Credenciais** (`src/lib/credentials.ts`): usa o token da conta conectada
-  mais recente (descriptografado), com fallback para o `.env`.
+  mais recente (descriptografado), com fallback para o `.env`; renova o token
+  quando faltam menos de 30 dias (`refresh_access_token`).
 - **Painel** (`src/app/app/*`): server components para dados + client
   components para interação (editor de fluxos, conexão).
 

@@ -19,8 +19,8 @@ Leia https://raw.githubusercontent.com/gabrieltabarkiewicz/commentflow/main/docs
 ```
 
 O agente baixa o projeto, instala, liga o painel, cria o endereço público e te
-conduz pela Meta. Você só clica no site da Meta e no login do Facebook, e cola o
-ID e a chave do seu app.
+conduz pela Meta. Você só clica no site da Meta e no login do Instagram, e cola o
+ID e a chave do app do Instagram.
 
 ## 🚀 Instalar com 1 comando
 

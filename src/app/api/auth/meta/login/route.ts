@@ -6,14 +6,11 @@ import { carregarConfigMeta } from "@/lib/configMeta";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SCOPES = [
-  "instagram_basic",
-  "instagram_manage_comments",
-  "instagram_manage_messages",
-  "pages_show_list",
-  "pages_read_engagement",
-  "pages_manage_metadata",
-  "business_management",
+// Login do Instagram (API do Instagram com login do Instagram): sem Página do Facebook.
+const ESCOPOS = [
+  "instagram_business_basic",
+  "instagram_business_manage_comments",
+  "instagram_business_manage_messages",
 ];
 
 export async function GET(req: NextRequest) {
@@ -27,12 +24,10 @@ export async function GET(req: NextRequest) {
     env.metaRedirectUri || `${req.nextUrl.origin}/api/auth/meta/callback`;
   const state = crypto.randomUUID();
 
-  const url = new URL(
-    `https://www.facebook.com/${env.graphVersion}/dialog/oauth`,
-  );
+  const url = new URL("https://www.instagram.com/oauth/authorize");
   url.searchParams.set("client_id", env.metaAppId);
   url.searchParams.set("redirect_uri", redirectUri);
-  url.searchParams.set("scope", SCOPES.join(","));
+  url.searchParams.set("scope", ESCOPOS.join(","));
   url.searchParams.set("response_type", "code");
   url.searchParams.set("state", state);
 

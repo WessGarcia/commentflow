@@ -52,7 +52,7 @@ function buildMessage(text: string, quickReplies?: QuickReply[]) {
 
 /**
  * Public reply to a comment.
- * POST /{ig-comment-id}/replies  (needs instagram_manage_comments)
+ * POST /{ig-comment-id}/replies  (needs instagram_business_manage_comments)
  */
 export function replyToComment(
   creds: IgCredentials,
@@ -67,7 +67,7 @@ export function replyToComment(
 /**
  * Send a DM. recipient is either { comment_id } (private reply to a comment)
  * or { id } (a message to a user PSID, e.g. after a quick-reply tap).
- * POST /{ig-user-id}/messages  (needs instagram_manage_messages)
+ * POST /me/messages  (needs instagram_business_manage_messages)
  */
 export function sendDm(
   creds: IgCredentials,
@@ -75,7 +75,7 @@ export function sendDm(
   text: string,
   quickReplies?: QuickReply[],
 ): Promise<GraphResult> {
-  return graphPost(`${base()}/${creds.igUserId}/messages`, creds.accessToken, {
+  return graphPost(`${base()}/me/messages`, creds.accessToken, {
     recipient,
     messaging_type: "RESPONSE",
     message: buildMessage(text, quickReplies),
@@ -88,7 +88,7 @@ export function sendRaw(
   recipient: { comment_id?: string; id?: string },
   message: Record<string, unknown>,
 ): Promise<GraphResult> {
-  return graphPost(`${base()}/${creds.igUserId}/messages`, creds.accessToken, {
+  return graphPost(`${base()}/me/messages`, creds.accessToken, {
     recipient,
     messaging_type: "RESPONSE",
     message,
@@ -122,7 +122,7 @@ export function sendPrivateReply(
 
 /**
  * Hide / unhide a comment on your own media.
- * POST /{ig-comment-id}?hide=true|false  (needs instagram_manage_comments)
+ * POST /{ig-comment-id}?hide=true|false  (needs instagram_business_manage_comments)
  */
 export function hideComment(creds: IgCredentials, commentId: string, hide: boolean): Promise<GraphResult> {
   return graphPost(`${base()}/${commentId}`, creds.accessToken, { hide });

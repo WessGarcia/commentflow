@@ -3,8 +3,9 @@
 ## Requisitos
 - **Docker Desktop** (caminho recomendado), ou **Node.js 22.19+** e
   **PostgreSQL** para rodar sem Docker.
-- Conta **Instagram Business/Creator** ligada a uma **Página do Facebook**.
-- Um **app na Meta** (Instagram, Webhooks, Facebook Login for Business).
+- Conta **Instagram profissional** (Empresa ou Criador). Não precisa de Página do Facebook.
+- Um **app na Meta** com o caso de uso *Gerenciar mensagens e conteúdo no Instagram*
+  (API do Instagram com login do Instagram).
 
 ## Instalação
 `node scripts/setup.mjs` cria o `.env`, gera `IG_VERIFY_TOKEN`, `ENCRYPTION_KEY`

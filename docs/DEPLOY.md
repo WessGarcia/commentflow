@@ -21,7 +21,7 @@ mão. A Render sobe o app + um Postgres gerenciado a partir do `render.yaml`.
      `IG_VERIFY_TOKEN` para usar no webhook da Meta.
 5. Configure o app na Meta seguindo o [GUIA.md](GUIA.md) da Etapa 3 em diante,
    usando `https://SUA-URL.onrender.com` como endereço público:
-   - **Login do Facebook → URIs de redirecionamento válidos:**
+   - **Configurar o login da empresa no Instagram → URL de redirecionamento OAuth:**
      `https://SUA-URL.onrender.com/api/auth/meta/callback`
    - **Webhook:** `https://SUA-URL.onrender.com/api/webhooks/instagram`,
      token = `IG_VERIFY_TOKEN`, assine `comments`, `messages` e

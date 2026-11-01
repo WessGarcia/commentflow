@@ -12,15 +12,15 @@ export const GUIA_URL = "https://github.com/gabrieltabarkiewicz/commentflow/blob
 
 export const TOPICOS: Topico[] = [
   {
-    slug: "conectar-instagram", icone: "instagram", tom: "ig", titulo: "Conectar o Instagram", descricao: "Conta profissional e login pelo Facebook",
+    slug: "conectar-instagram", icone: "instagram", tom: "ig", titulo: "Conectar o Instagram", descricao: "Conta profissional e login pelo Instagram",
     artigo: {
       titulo: "Como conectar o seu Instagram",
       resumo: "O CommentFlow fala com o Instagram pela API oficial da Meta. Você conecta uma vez e ele responde sozinho.",
       passos: [
-        "Deixe o Instagram como conta profissional (Empresa ou Criador), ligado a uma Página do Facebook que você administra.",
+        "Deixe o Instagram como conta profissional (Empresa ou Criador). Não precisa de Página do Facebook.",
         "No app do Instagram, ative Configurações → Mensagens → Ferramentas conectadas → Permitir acesso às mensagens.",
         "No painel, abra Configurações e clique em Conectar Instagram.",
-        "Entre com o Facebook dono da Página, escolha a Página e a conta, e aceite todas as permissões.",
+        "Entre com o Instagram da conta profissional e aceite todas as permissões.",
       ],
       dica: "Abra o painel pelo endereço público (não pelo localhost) na hora de conectar: o login começa e termina no mesmo endereço.",
     },

@@ -22,6 +22,7 @@ O CI (`.github/workflows/check.yml`) roda `npm ci`, `check`, `lint:typed` e
 - Grafo do construtor: padrões do esquema, validação, ligações, conversão de automações antigas (`grafo.test.ts`).
 - Validação da API de automações e conversa antiga com botões (`validation.test.ts`).
 - Colunas do quadro de contatos (`quadro.test.ts`).
+- Quando renovar o token de 60 dias do login do Instagram (`credentials.test.ts`).
 
 Não cobrem ainda: motor de execução (`motor.ts`), processamento de comentários e
 mensagens com o banco, chamadas reais à Graph API. Isso segue no teste de ponta a

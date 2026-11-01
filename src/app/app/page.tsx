@@ -125,7 +125,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
               )}
               <div className="flex-1 min-w-0">
                 <div className="truncate" style={{ fontSize: 14, fontWeight: 700 }}>{d.conta ? `@${d.conta.username}` : "Nenhuma conta"}</div>
-                <div style={{ fontSize: 12.5, color: "var(--m-text-dim)", marginTop: 2 }}>{d.conta ? "conta profissional" : "conecte pelo Facebook, sem copiar código"}</div>
+                <div style={{ fontSize: 12.5, color: "var(--m-text-dim)", marginTop: 2 }}>{d.conta ? "conta profissional" : "conecte pelo Instagram, sem copiar código"}</div>
               </div>
               <Link href="/app/configuracoes" aria-label="configurações do Instagram" className="flex items-center justify-center shrink-0" style={{ width: 34, height: 34, borderRadius: 10, border: "1px solid var(--border)", background: "var(--bg-card)", color: "var(--m-text-dim)" }}>
                 <Settings size={17} strokeWidth={1.8} />

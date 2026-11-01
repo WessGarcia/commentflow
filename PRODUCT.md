@@ -17,19 +17,18 @@ dentro das regras da plataforma.
 - Painel para criar/editar/ativar/excluir fluxos e ver o log de atividade.
 
 ## Fluxos principais
-1. **Conexão:** usuário clica "Conectar Instagram" → OAuth Meta → token da
-   conta (Página) salvo criptografado.
+1. **Conexão:** usuário clica "Conectar Instagram" → login do Instagram → token
+   da conta (60 dias, renovado sozinho) salvo criptografado.
 2. **Comentário → ação:** webhook de `comments` → match de fluxo → resposta
    pública (variações) + DM (simples ou passo de entrada do fluxo).
 3. **Botão → próximo passo:** webhook de `messages` (quick_reply/postback) →
    envia o passo alvo da DM.
 
 ## Requisitos
-- API oficial da Meta (Instagram Graph API).
-- Conta IG Business/Creator ligada a uma Página do Facebook.
-- Permissões: `instagram_basic`, `instagram_manage_comments`,
-  `instagram_manage_messages`, `pages_show_list`, `pages_manage_metadata`,
-  `business_management`.
+- API oficial da Meta (API do Instagram com login do Instagram).
+- Conta Instagram profissional (Empresa ou Criador); sem Página do Facebook.
+- Permissões: `instagram_business_basic`, `instagram_business_manage_comments`,
+  `instagram_business_manage_messages`.
 
 ## Restrições
 - Somente APIs oficiais; respeitar Termos da Meta, limites de API e políticas

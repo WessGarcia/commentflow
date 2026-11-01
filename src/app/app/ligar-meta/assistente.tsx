@@ -70,7 +70,6 @@ export function Assistente({ estado, origem, token, faltaApp }: { estado: Estado
       corpo: (
         <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: 13, lineHeight: 1.7, color: "var(--m-text-body)" }}>
           <li>Conta <b>profissional</b> (Empresa ou Criador de conteúdo) e <b>pública</b>.</li>
-          <li>Ligada a uma <b>Página do Facebook</b> que você administra.</li>
           <li>No app do Instagram: Configurações → Mensagens → Ferramentas conectadas → <b>Permitir acesso às mensagens</b>.</li>
         </ul>
       ),
@@ -101,7 +100,7 @@ export function Assistente({ estado, origem, token, faltaApp }: { estado: Estado
       id: "app", titulo: "Crie o app na Meta", feito: estado.meta.appId, icone: <Rocket size={17} />,
       corpo: (
         <div style={{ fontSize: 13, color: "var(--m-text-body)", lineHeight: 1.6, marginTop: 6 }}>
-          Entre em <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer">developers.facebook.com/apps <ExternalLink size={11} /></a> com o Facebook dono da Página → <b>Criar app</b> → caso de uso <b>Outro</b> → tipo <b>Empresa</b>. Depois, em <i>Adicionar produtos</i>: <b>Login do Facebook para Empresas</b>, <b>Webhooks</b> e <b>Instagram</b>.
+          Entre em <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer">developers.facebook.com/apps <ExternalLink size={11} /></a> → <b>Criar app</b> → caso de uso <b>Gerenciar mensagens e conteúdo no Instagram</b>. As próximas etapas ficam em <b>Casos de uso → API do Instagram → Configuração da API com login do Instagram</b>.
         </div>
       ),
     },
@@ -120,9 +119,9 @@ export function Assistente({ estado, origem, token, faltaApp }: { estado: Estado
       id: "chaves", titulo: "Cole o ID e a chave secreta do app", feito: estado.meta.appId && estado.meta.appSecret, icone: <KeyRound size={17} />,
       corpo: (
         <>
-          <div style={{ fontSize: 13, color: "var(--m-text-body)", marginTop: 6 }}>Na mesma tela (<b>Configurações → Básico</b>): copie o <b>ID do app</b> e a <b>Chave secreta</b> (clique em Mostrar). Ficam guardadas criptografadas e nunca voltam para esta tela.</div>
+          <div style={{ fontSize: 13, color: "var(--m-text-body)", marginTop: 6 }}>Em <b>Configuração da API com login do Instagram</b>, no topo: copie o <b>ID do app do Instagram</b> e a <b>Chave secreta do app do Instagram</b> (clique em Mostrar). Não é o ID de Configurações → Básico. Ficam guardadas criptografadas e nunca voltam para esta tela.</div>
           <div className="flex flex-col" style={{ gap: 8, marginTop: 10 }}>
-            <input className="m-input" value={appId} onChange={(e) => setAppId(e.target.value)} placeholder={estado.meta.appId ? "ID já salvo (cole para trocar)" : "ID do app (só números)"} aria-label="ID do app" inputMode="numeric" />
+            <input className="m-input" value={appId} onChange={(e) => setAppId(e.target.value)} placeholder={estado.meta.appId ? "ID já salvo (cole para trocar)" : "ID do app do Instagram (só números)"} aria-label="ID do app do Instagram" inputMode="numeric" />
             <input className="m-input" value={segredo} onChange={(e) => setSegredo(e.target.value)} placeholder={estado.meta.appSecret ? "Chave já salva (cole para trocar)" : "Chave secreta (32 letras e números)"} aria-label="chave secreta do app" type="password" autoComplete="off" />
             <button type="button" className="m-btn" style={{ alignSelf: "flex-start" }} disabled={(!appId.trim() && !segredo.trim()) || ocupado === "chaves"} onClick={() => salvar("chaves", { ...(appId.trim() ? { appId: appId.trim() } : {}), ...(segredo.trim() ? { appSecret: segredo.trim() } : {}) })}>
               {ocupado === "chaves" ? <Loader2 size={15} className="animate-spin" /> : <Lock size={15} />} Salvar as chaves
@@ -136,7 +135,7 @@ export function Assistente({ estado, origem, token, faltaApp }: { estado: Estado
       id: "login", titulo: "Libere o retorno do login", feito: null, icone: <ArrowRight size={17} />,
       corpo: base ? (
         <>
-          <div style={{ fontSize: 13, color: "var(--m-text-body)", marginTop: 6 }}>Em <b>Login do Facebook para Empresas → Configurações</b>, em <i>URIs de redirecionamento do OAuth válidos</i>, cole e salve:</div>
+          <div style={{ fontSize: 13, color: "var(--m-text-body)", marginTop: 6 }}>Na mesma tela, em <b>Configurar o login da empresa no Instagram</b> → <i>URL de redirecionamento OAuth</i>, cole e salve:</div>
           <Valor rotulo="URI de redirecionamento" texto={`${base}/api/auth/meta/callback`} />
         </>
       ) : semEndereco,
@@ -145,7 +144,7 @@ export function Assistente({ estado, origem, token, faltaApp }: { estado: Estado
       id: "webhook", titulo: "Ligue os avisos (webhook)", feito: Boolean(estado.webhook.verificadoEm), icone: <Webhook size={17} />,
       corpo: base ? (
         <>
-          <div style={{ fontSize: 13, color: "var(--m-text-body)", marginTop: 6 }}>Em <b>Webhooks</b>, escolha <b>Instagram</b>, cole os dois valores e clique em <b>Verificar e salvar</b>. Depois clique em <b>Assinar</b> nos campos <code>comments</code>, <code>messages</code> e <code>messaging_postbacks</code> (e, se for usar, <code>live_comments</code> e <code>message_reactions</code>).</div>
+          <div style={{ fontSize: 13, color: "var(--m-text-body)", marginTop: 6 }}>Na mesma tela, em <b>Configurar webhooks</b>, cole os dois valores e clique em <b>Verificar e salvar</b>. Depois ligue os campos <code>comments</code>, <code>messages</code> e <code>messaging_postbacks</code> (e, se for usar, <code>live_comments</code> e <code>message_reactions</code>).</div>
           <Valor rotulo="URL de retorno de chamada" texto={`${base}/api/webhooks/instagram`} />
           <div style={{ marginTop: 10 }}>
             <div className="m-label flex items-center" style={{ marginBottom: 4, display: "flex", gap: 6 }}>
@@ -171,7 +170,7 @@ export function Assistente({ estado, origem, token, faltaApp }: { estado: Estado
       corpo: (
         <>
           <div style={{ fontSize: 13, color: "var(--m-text-body)", lineHeight: 1.6, marginTop: 6 }}>
-            {estado.instagram.conectado ? <>Conectado: <b>@{estado.instagram.conta}</b>.</> : <>Entre com o Facebook dono da Página, escolha a Página e a conta e aceite <b>todas</b> as permissões.</>}
+            {estado.instagram.conectado ? <>Conectado: <b>@{estado.instagram.conta}</b>.</> : <>Entre com o Instagram da conta profissional e aceite <b>todas</b> as permissões.</>}
           </div>
           {!estado.instagram.conectado && (
             base && localhost

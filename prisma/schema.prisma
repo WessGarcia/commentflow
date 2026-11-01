@@ -17,14 +17,16 @@ enum MatchType {
   KEYWORD
 }
 
-/// A connected Instagram Business account.
+/// A connected Instagram professional account (Instagram login).
 model Account {
-  id          String   @id @default(cuid())
-  igUserId    String   @unique
-  username    String?
-  accessToken String?
-  createdAt   DateTime @default(now())
-  flows       Flow[]
+  id            String    @id @default(cuid())
+  igUserId      String    @unique
+  username      String?
+  accessToken   String?
+  /// Instagram login token lasts 60 days; lib/credentials.ts renews it
+  tokenExpiraEm DateTime?
+  createdAt     DateTime  @default(now())
+  flows         Flow[]
 }
 
 /// An automation: when a comment matches, run the configured actions.
@@ -52,15 +54,15 @@ model Flow {
 
 /// Every comment webhook we receive, stored for dedup and auditing.
 model CommentEvent {
-  id           String   @id @default(cuid())
-  commentId    String   @unique
-  mediaId      String?
-  fromUserId   String?
-  fromUsername String?
-  text         String?
-  processed    Boolean  @default(false)
-  raw          Json?
-  receivedAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  commentId      String   @unique
+  mediaId        String?
+  fromUserId     String?
+  fromUsername   String?
+  text           String?
+  processed      Boolean  @default(false)
+  raw            Json?
+  receivedAt     DateTime @default(now())
   /// moderação pelo painel
   ocultado       Boolean  @default(false)
   resolvido      Boolean  @default(false)
@@ -157,20 +159,20 @@ model Configuracao {
 /// Uma pessoa andando pelo grafo de uma automação (construtor visual).
 /// status: andando | aguardando (botão) | espera (atraso) | coleta | concluida | parada_janela | erro
 model Execucao {
-  id         String    @id @default(cuid())
-  flow       Flow      @relation(fields: [flowId], references: [id], onDelete: Cascade)
-  flowId     String
-  igsid      String
-  commentId  String?
+  id           String    @id @default(cuid())
+  flow         Flow      @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  flowId       String
+  igsid        String
+  commentId    String?
   /// a resposta privada ao comentário só pode ser usada uma vez
-  privadaUsada Boolean @default(false)
-  noAtual    String?
-  status     String    @default("andando")
-  proximaEm  DateTime?
-  erro       String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  cliques    Clique[]
+  privadaUsada Boolean   @default(false)
+  noAtual      String?
+  status       String    @default("andando")
+  proximaEm    DateTime?
+  erro         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  cliques      Clique[]
 
   @@index([status, proximaEm])
   @@index([igsid, status])
