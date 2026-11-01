@@ -10,7 +10,7 @@ Leia https://raw.githubusercontent.com/gabrieltabarkiewicz/commentflow/main/docs
 
 O agente instala, liga o painel, cria o endereço público e te conduz pela Meta.
 Você só faz o que precisa ser você: clicar no site da Meta e no login do
-Facebook, e colar o ID e a chave do seu app.
+Instagram, e colar o ID e a chave do seu app. Não precisa de Página do Facebook.
 
 ---
 
@@ -83,33 +83,43 @@ Abra para a pessoa o **assistente do painel**:
 botões de copiar e o status de cada uma. Conduza nesta ordem, uma etapa por
 mensagem, esperando ela dizer "feito":
 
-1. **Instagram pronto:** conta profissional e pública, ligada a uma Página do
-   Facebook que ela administra, e "Permitir acesso às mensagens" ligado
-   (Instagram → Configurações → Mensagens → Ferramentas conectadas).
-2. **Criar o app:** https://developers.facebook.com/apps/ → Criar app → caso
-   de uso **Outro** → tipo **Empresa**. Em *Adicionar produtos*: **Login do
-   Facebook para Empresas**, **Webhooks** e **Instagram**.
-3. **Configurações → Básico:** colar *Domínios do app*, *URL da Política de
-   Privacidade* e *URL de exclusão de dados* (rode
+O login é o **do Instagram** (API do Instagram com login do Instagram): não
+precisa de Página do Facebook.
+
+1. **Instagram pronto:** conta profissional (Empresa ou Criador) e pública, com
+   "Permitir acesso às mensagens" ligado (Instagram → Configurações →
+   Mensagens e respostas ao story → Controles de mensagens → Ferramentas
+   conectadas).
+2. **Criar o app:** https://developers.facebook.com/apps/ → **Criar app** →
+   caso de uso **Gerenciar mensagens e conteúdo no Instagram** (se pedir um
+   portfólio empresarial, ela escolhe ou cria um). Depois, no menu da
+   esquerda: **Casos de uso → API do Instagram → Configuração da API com login
+   do Instagram**. As etapas 4, 5 e 6 acontecem nessa tela.
+3. **Configurações do app → Básico:** colar *Domínios do app*, *URL da Política
+   de Privacidade* e *URL de exclusão de dados* (rode
    `node scripts/setup.mjs coordenadas` e passe os valores), escolher
    categoria e ícone, salvar.
-4. **Chaves:** peça o **ID do app** e a **Chave secreta**. Ofereça dois
-   jeitos: ela cola no assistente do painel (etapa "Cole o ID e a chave
-   secreta"), ou cola aqui e você grava com
+4. **Chaves:** no topo da tela *Configuração da API com login do Instagram*,
+   peça o **ID do app do Instagram** e a **Chave secreta do app do Instagram**
+   (não são os de Configurações → Básico). Ofereça dois jeitos: ela cola no
+   assistente do painel (etapa "Cole o ID e a chave secreta do app"), ou cola
+   aqui e você grava com
    `node scripts/setup.mjs meta --app-id ID --app-secret CHAVE`. Não repita a
    chave depois.
-5. **Login do Facebook para Empresas → Configurações:** colar a *URI de
-   redirecionamento* (`https://SEU-ENDERECO/api/auth/meta/callback`) e salvar.
-6. **Webhooks → Instagram:** colar a *URL de retorno de chamada* e o *Token de
-   verificação* (os dois estão no assistente e em `coordenadas`) →
+5. **Retorno do login:** em *Configurar o login da empresa no Instagram*, colar
+   a **URL de redirecionamento OAuth**
+   (`https://SEU-ENDERECO/api/auth/meta/callback`) e salvar.
+6. **Webhooks:** em *Configurar webhooks*, colar a **URL de callback** e o
+   **Verificar token** (os dois estão no assistente e em `coordenadas`) →
    **Verificar e salvar** → assinar `comments`, `messages` e
    `messaging_postbacks` (e `live_comments`, `message_reactions` se for usar
    esses gatilhos). Confira com `verificar`: "a Meta verificou o webhook" fica ✓.
 7. **Publicar:** Modo do app → **Ao vivo**. Explique que, para a própria
    conta, não precisa de Análise do app.
 8. **Conectar:** ela abre `https://SEU-ENDERECO/app/ligar-meta` (pelo endereço
-   público, não pelo localhost), clica em **Conectar Instagram** e aceita
-   todas as permissões. Confira com `verificar`: "Instagram conectado" fica ✓.
+   público, não pelo localhost), clica em **Conectar Instagram**, entra com a
+   conta profissional e deixa todas as permissões marcadas. Confira com
+   `verificar`: "Instagram conectado" fica ✓.
 
 ### Fase 4: primeira automação e teste
 
@@ -135,7 +145,9 @@ mensagem, esperando ela dizer "feito":
 | `docker compose` falha | Docker Desktop aberto e verde? Rode de novo. Veja `docker compose logs app`. |
 | "Verificar e salvar" da Meta dá erro | `verificar` precisa mostrar o webhook ✓. Túnel ligado? Endereço igual nos dois lados? |
 | Volta do login com "estado-invalido" | Ela clicou em Conectar pelo localhost: abrir pelo endereço público. |
-| Volta com "sem-conta-ig-business" | Instagram não é profissional, não está na Página, ou a Página não foi marcada nas permissões. |
+| Volta com "sem-conta-profissional" | O Instagram não é profissional: mudar para Empresa ou Criador e conectar de novo. |
+| Volta com "falha-no-token" | O ID e a chave não são os do **app do Instagram** (etapa 4), ou a URL de redirecionamento da etapa 5 está diferente da do painel. |
+| "Conta conectada, mas a Meta recusou ligar os avisos" | Conferir a etapa 6 (webhook verificado e campos assinados) e clicar em Conectar Instagram de novo. |
 | Comentam e nada acontece | App em Ao vivo? Campo `comments` assinado? Perfil público? Túnel ligado? |
 | A resposta pública sai e o direct não | "Permitir acesso às mensagens" no Instagram. Um direct por comentário, até 7 dias. |
 
