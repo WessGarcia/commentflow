@@ -299,7 +299,7 @@ export function faltaNoPasso(s: Simples, passo: 1 | 2 | 3): string[] {
   const g = GATILHOS[s.tipo];
   if (passo === 1) {
     if (g.palavras !== "nenhuma" && !s.qualquer && !s.palavras.some((p) => p.trim())) falta.push("Escreva ao menos uma palavra-chave (digite e aperte Enter).");
-    if (g.post && s.postId !== "" && !s.postId.trim()) falta.push("Cole o ID do post ou escolha “Todas as publicações”.");
+    if (g.post && s.postId !== "" && !s.postId.trim()) falta.push("Toque na publicação (ou cole o ID) ou escolha “Todas as publicações”.");
   }
   if (passo === 2) {
     if (s.pergunta.trim() && !s.entrega.trim()) falta.push("Escreva a mensagem que chega depois do botão.");

@@ -45,8 +45,9 @@ describe("validarGrafo", () => {
   });
 
   it("aplica a regra da resposta privada só quando ela vale", () => {
-    const longo = msg("a", { texto: "x".repeat(81), botoes: [{ titulo: "Ver", tipo: "url", url: "https://exemplo.com" }] });
-    expect(validarGrafo(grafo([longo]))).toContain("No primeiro passo, com botões, o texto tem até 80 caracteres (vira o título do cartão).");
+    const longo = msg("a", { texto: "x".repeat(81), imagem_url: "https://exemplo.com/a.png", botoes: [{ titulo: "Ver", tipo: "url", url: "https://exemplo.com" }] });
+    expect(validarGrafo(grafo([longo]))).toContain("No primeiro passo, com imagem e botões, o texto tem até 80 caracteres (vira o título do cartão).");
+    expect(validarGrafo(grafo([msg("a", { texto: "x".repeat(300), botoes: [{ titulo: "Ver", tipo: "url", url: "https://exemplo.com" }] })]))).toEqual([]);
     expect(validarGrafo(grafo([longo]), false)).toEqual([]);
     expect(validarGrafo(grafo([msg("a", { imagem_url: "https://exemplo.com/a.png" })]))).toContain("No primeiro passo, imagem só junto de botões. Coloque a imagem num passo depois do toque.");
   });

@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { getActiveCredentials } from "@/lib/credentials";
-import { sendRaw, templateComBotoes, type BotaoTemplate, type GraphResult, type IgCredentials } from "@/lib/meta";
+import { sendRaw, templateBotao, templateComBotoes, type BotaoTemplate, type GraphResult, type IgCredentials } from "@/lib/meta";
 import { asGrafo, type Grafo, type No, type NoDe } from "@/lib/grafo";
 import { registrarEnvio } from "@/lib/conversas";
 import { carregarConfigMeta } from "@/lib/configMeta";
@@ -71,6 +71,7 @@ async function montarMensagem(no: NoDe<"mensagem">, exec: Exec, primeira: boolea
       if (b.tipo === "url") botoes.push({ type: "web_url", url: await rastrear(b.url.trim(), exec), title: b.titulo });
       else botoes.push({ type: "postback", payload: payloadDe(exec.id, b.proximo), title: b.titulo });
     }
+    if (!no.imagem_url.trim() && texto && texto.length <= 640) return [templateBotao(texto, botoes)];
     const cabe = texto.length <= 80;
     const cartao = templateComBotoes(cabe ? texto || "👇" : "👇", botoes, no.imagem_url.trim() || undefined);
     if (cabe || primeira) return [cartao];

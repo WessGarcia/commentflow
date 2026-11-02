@@ -6,6 +6,7 @@ import { asDmFlow, buildStepMessage } from "@/lib/flowTypes";
 import { estaBloqueado, registrarEnvio, registrarMensagem } from "@/lib/conversas";
 import { notificar } from "@/lib/notificacoes";
 import { iniciarExecucao } from "@/lib/motor";
+import { temPalavra } from "@/lib/texto";
 
 export interface IncomingComment {
   commentId: string;
@@ -83,14 +84,12 @@ export async function processComment(c: IncomingComment) {
   }
 
   const flows = await prisma.flow.findMany({ where: { enabled: true, tipo: c.live ? "live" : "comentario" } });
-  const text = (c.text ?? "").toLowerCase();
-
   const matched = flows.find((f) => {
     if (f.scope === "SPECIFIC_POST" && f.mediaId && f.mediaId !== c.mediaId) {
       return false;
     }
     if (f.matchType === "KEYWORD") {
-      return f.keywords.some((k) => text.includes(k.toLowerCase()));
+      return temPalavra(c.text ?? "", f.keywords);
     }
     return true; // ANY
   });

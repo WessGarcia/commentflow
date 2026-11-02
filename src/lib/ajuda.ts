@@ -1,3 +1,4 @@
+import { normalizar } from "@/lib/texto";
 /**
  * Central de ajuda (como na Mandei). O conteúdo mora aqui, sem banco: o
  * painel lateral (navegador) e a página /app/ajuda (servidor) usam a mesma
@@ -43,7 +44,7 @@ export const TOPICOS: Topico[] = [
     slug: "palavras-chave", icone: "tag", tom: "verde", titulo: "Palavras-chave", descricao: "O que dispara a resposta",
     artigo: {
       titulo: "Como funcionam as palavras-chave",
-      resumo: "Se o comentário contiver a palavra, a automação responde. Maiúsculas não importam.",
+      resumo: "Se o comentário contiver a palavra, a automação responde. Maiúsculas e acentos não importam.",
       passos: [
         "Use palavras curtas e fáceis de digitar: quero, link, eu quero.",
         "Peça na legenda do post para comentarem a palavra.",
@@ -87,8 +88,6 @@ export const FAQ: Faq[] = [
   { p: "Posso responder o direct pelo celular?", r: "Pode: o painel funciona no celular, e o que você responder pelo app do Instagram também aparece em Conversas." },
   { p: "Esqueci a senha do painel. O que faço?", r: "A senha é o valor de PAINEL_SENHA no arquivo .env (ou em Environment, na Render). Troque lá e reinicie o painel." },
 ];
-
-const normalizar = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 export type Resultado = { tipo: "artigo"; slug: string; titulo: string; trecho: string } | { tipo: "faq"; titulo: string; trecho: string };
 

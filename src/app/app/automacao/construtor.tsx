@@ -16,6 +16,7 @@ import { grafoDeAntigo, ligarSaida, minutosLegivel, novoNo, saidasDoNo, validarG
 import { simplesDoFluxo } from "@/lib/modelos";
 import { GATILHOS, TIPOS as TIPOS_GATILHO, tipoDe, type TipoGatilho } from "@/lib/gatilhos";
 import { Pill, Toggle, useConfirmar } from "../_ui/ui";
+import { SeletorPost } from "./seletor-post";
 
 /**
  * O construtor visual (como na Mandei): paleta à esquerda, canvas com o
@@ -236,7 +237,7 @@ function ConstrutorInterno({ fluxo }: { fluxo: FlowDTO | null }) {
     const tg = GATILHOS[g.tipo];
     const qualquer = tg.palavras === "nenhuma" || g.qualquer;
     if (!qualquer && !palavras.length) problemas.unshift("Escreva ao menos uma palavra-chave no cartão do gatilho.");
-    if (tg.post && g.scope === "SPECIFIC_POST" && !g.mediaId.trim()) problemas.push("Cole o ID do post ou escolha todos os posts.");
+    if (tg.post && g.scope === "SPECIFIC_POST" && !g.mediaId.trim()) problemas.push("Toque no post (ou cole o ID) ou escolha todos os posts.");
     setErros(problemas);
     if (problemas.length) return;
     setSalvando(true);
@@ -402,7 +403,7 @@ function PainelGatilho({ g, onChange }: { g: Gatilho; onChange: (g: Gatilho) => 
           <option value="ALL_POSTS">Todos os posts</option>
           <option value="SPECIFIC_POST">Um post específico</option>
         </select>
-        {g.scope === "SPECIFIC_POST" && <input className="m-input" style={{ marginTop: 8 }} value={g.mediaId} onChange={(e) => onChange({ ...g, mediaId: e.target.value })} placeholder="ID do post" aria-label="ID do post" />}
+        {g.scope === "SPECIFIC_POST" && <div style={{ marginTop: 8 }}><SeletorPost valor={g.mediaId} onChange={(id) => onChange({ ...g, mediaId: id })} /></div>}
       </Campo>
       )}
       {GATILHOS[g.tipo].publica && (
@@ -536,7 +537,7 @@ function FormMensagem({ no, inicio, outros, onChange, respostaPrivada }: { no: N
           <span>Esta é a resposta privada ao comentário: vai num envio só, e o próximo passo só sai depois que a pessoa tocar num botão ou responder (regra da Meta).</span>
         </div>
       )}
-      <Campo rotulo="Texto" dica={no.botoes.length ? `Com botões, o texto vira o título do cartão (até 80 caracteres): ${no.texto.trim().length}/80.` : undefined}>
+      <Campo rotulo="Texto" dica={no.botoes.length ? (no.imagem_url.trim() ? `Com imagem e botões, o texto vira o título do cartão: ${no.texto.trim().length}/80.` : `Os botões aparecem dentro do balão, embaixo do texto: ${no.texto.trim().length}/640.`) : undefined}>
         <textarea className="m-textarea" rows={4} value={no.texto} onChange={(e) => onChange({ ...no, texto: e.target.value })} maxLength={1000} placeholder="Oi! Aqui está o link: https://…" />
       </Campo>
       <Campo rotulo="Imagem (opcional)" dica="Link público de uma imagem (https://…). Os links do texto e dos botões são rastreados.">

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { env } from "@/lib/env";
 import { avisarReconexao } from "@/lib/notificacoes";
 
@@ -38,7 +39,12 @@ async function graphPost(
   }
 }
 
-function buildMessage(text: string, quickReplies?: QuickReply[]) {
+/** Até 3 botões curtos cabem dentro do balão (button template); senão viram respostas rápidas. */
+export function buildMessage(text: string, quickReplies?: QuickReply[]) {
+  const botoes = quickReplies ?? [];
+  if (botoes.length > 0 && botoes.length <= 3 && text.length <= 640 && botoes.every((q) => q.title.length <= 20)) {
+    return templateBotao(text, botoes.map((q) => ({ type: "postback" as const, title: q.title, payload: q.payload })));
+  }
   const message: Record<string, unknown> = { text };
   if (quickReplies && quickReplies.length > 0) {
     message.quick_replies = quickReplies.map((q) => ({
@@ -96,6 +102,11 @@ export function sendRaw(
 }
 
 export type BotaoTemplate = { type: "web_url"; url: string; title: string } | { type: "postback"; payload: string; title: string };
+
+/** Button template: text (max 640) and up to 3 buttons inside the same bubble. */
+export function templateBotao(texto: string, botoes: BotaoTemplate[]) {
+  return { attachment: { type: "template", payload: { template_type: "button", text: texto.slice(0, 640), buttons: botoes.slice(0, 3) } } };
+}
 
 /** Generic template: title (max 80) + up to 3 buttons (link or postback). */
 export function templateComBotoes(titulo: string, botoes: BotaoTemplate[], imagem?: string) {
@@ -157,5 +168,64 @@ export async function getMedia(creds: IgCredentials, mediaId: string): Promise<M
     };
   } catch {
     return null;
+  }
+}
+
+export interface Publicacao {
+  id: string;
+  legenda: string;
+  imagem: string | null;
+  reels: boolean;
+  quando: string | null;
+}
+
+const midiasSchema = z.object({
+  data: z.array(
+    z.object({
+      id: z.string().regex(/^[\w-]+$/),
+      caption: z.string().optional(),
+      media_type: z.string().optional(),
+      media_product_type: z.string().optional(),
+      media_url: z.string().optional(),
+      thumbnail_url: z.string().optional(),
+      timestamp: z.string().optional(),
+    }),
+  ),
+});
+
+/** Resposta do GET /me/media em publicações para o seletor; null se a Meta mandou algo fora do formato. */
+export function publicacoesDaResposta(body: unknown): Publicacao[] | null {
+  const r = midiasSchema.safeParse(body);
+  if (!r.success) return null;
+  return r.data.data.map((m) => ({
+    id: m.id,
+    legenda: m.caption ?? "",
+    imagem: (m.media_type === "VIDEO" ? m.thumbnail_url : m.media_url) ?? null,
+    reels: m.media_product_type === "REELS",
+    quando: m.timestamp ?? null,
+  }));
+}
+
+/**
+ * As publicações mais recentes da conta (posts e reels), para escolher o post de uma automação.
+ * GET /me/media  (instagram_business_basic). erro "token" = conexão vencida, precisa conectar de novo.
+ */
+export async function listarPublicacoes(creds: IgCredentials, limite = 24): Promise<{ itens: Publicacao[] } | { erro: "token" | "falha" }> {
+  try {
+    const url = `${base()}/me/media?` + new URLSearchParams({
+      fields: "id,caption,media_type,media_product_type,media_url,thumbnail_url,timestamp",
+      limit: String(limite),
+      access_token: creds.accessToken,
+    });
+    const r = await fetch(url);
+    const body: unknown = await r.json().catch(() => null);
+    if ((body as { error?: { code?: number } } | null)?.error?.code === 190) {
+      void avisarReconexao();
+      return { erro: "token" };
+    }
+    const itens = r.ok ? publicacoesDaResposta(body) : null;
+    return itens ? { itens } : { erro: "falha" };
+  } catch {
+    return { erro: "falha" };
   }
 }

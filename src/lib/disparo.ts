@@ -7,6 +7,7 @@ import { estaBloqueado, registrarEnvio } from "@/lib/conversas";
 import { iniciarExecucao } from "@/lib/motor";
 import { notificar } from "@/lib/notificacoes";
 import { GATILHOS, type TipoGatilho } from "@/lib/gatilhos";
+import { temPalavra } from "@/lib/texto";
 
 /**
  * Gatilhos que chegam pelo direct (resposta ao story, menção no story,
@@ -18,9 +19,8 @@ export async function dispararPorMensagem(tipo: Exclude<TipoGatilho, "comentario
   if (!e.igsid || (await estaBloqueado(e.igsid))) return { skipped: "blocked-or-empty" };
 
   const fluxos = await prisma.flow.findMany({ where: { enabled: true, tipo }, orderBy: { createdAt: "asc" } });
-  const texto = e.texto.toLowerCase();
   const usaPalavra = GATILHOS[tipo].palavras !== "nenhuma";
-  const fluxo = fluxos.find((f) => !usaPalavra || f.matchType === "ANY" || f.keywords.some((k) => texto.includes(k.toLowerCase())));
+  const fluxo = fluxos.find((f) => !usaPalavra || f.matchType === "ANY" || temPalavra(e.texto, f.keywords));
   if (!fluxo) return { matched: false };
 
   try {

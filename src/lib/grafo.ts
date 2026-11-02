@@ -108,7 +108,8 @@ export function validarGrafo(g: Grafo, respostaPrivada = true): string[] {
   if (primeiro?.tipo !== "mensagem") erros.push("O primeiro passo precisa ser uma mensagem (é ela que responde o comentário).");
   else if (respostaPrivada) {
     // a resposta privada ao comentário é UM envio só (regra da Meta)
-    if (primeiro.botoes.length && primeiro.texto.trim().length > 80) erros.push("No primeiro passo, com botões, o texto tem até 80 caracteres (vira o título do cartão).");
+    if (primeiro.botoes.length && primeiro.imagem_url.trim() && primeiro.texto.trim().length > 80) erros.push("No primeiro passo, com imagem e botões, o texto tem até 80 caracteres (vira o título do cartão).");
+    if (primeiro.botoes.length && primeiro.texto.trim().length > 640) erros.push("No primeiro passo, com botões, o texto tem até 640 caracteres.");
     if (primeiro.imagem_url.trim() && !primeiro.botoes.length) erros.push("No primeiro passo, imagem só junto de botões. Coloque a imagem num passo depois do toque.");
   }
   return Array.from(new Set(erros));

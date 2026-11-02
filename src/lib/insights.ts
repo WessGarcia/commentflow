@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Periodo } from "@/lib/painel";
+import { normalizar } from "@/lib/texto";
 
 /**
  * Insights (como na Mandei): o período em números que dá para conferir no
@@ -65,8 +66,8 @@ export async function getInsights(periodo: Periodo) {
 
   // palavras: em quantos comentários do período cada palavra-chave apareceu
   const textos = await prisma.commentEvent.findMany({ where: { receivedAt: { gte: iniAtual } }, select: { text: true }, take: 10000 });
-  const minusculos = textos.map((t) => (t.text ?? "").toLowerCase());
-  const palavras = Array.from(new Set(flows.filter((f) => f.matchType === "KEYWORD").flatMap((f) => f.keywords.map((k) => k.toLowerCase()))));
+  const minusculos = textos.map((t) => normalizar(t.text ?? ""));
+  const palavras = Array.from(new Set(flows.filter((f) => f.matchType === "KEYWORD").flatMap((f) => f.keywords.map(normalizar))));
   const contagem = palavras.map((p) => ({ palavra: p, n: minusculos.filter((t) => t.includes(p)).length })).filter((p) => p.n > 0);
   const somaPalavras = contagem.reduce((a, p) => a + p.n, 0);
   const topPalavras = contagem.sort((a, b) => b.n - a.n).slice(0, 6).map((p) => ({ ...p, pct: somaPalavras ? Math.round((p.n / somaPalavras) * 100) : 0 }));

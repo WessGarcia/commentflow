@@ -21,6 +21,13 @@ describe("verifySignature (X-Hub-Signature-256 da Meta)", () => {
     expect(verifySignature(corpo, assinar(corpo, "outra-chave"), segredo)).toBe(false);
   });
 
+  it("aceita qualquer uma das chaves da lista e ignora a vazia", () => {
+    expect(verifySignature(corpo, assinar(corpo, "chave-basico"), [segredo, "chave-basico"])).toBe(true);
+    expect(verifySignature(corpo, assinar(corpo), [segredo, ""])).toBe(true);
+    expect(verifySignature(corpo, assinar(corpo, "outra-chave"), [segredo, "chave-basico"])).toBe(false);
+    expect(verifySignature(corpo, assinar(corpo), ["", ""])).toBe(false);
+  });
+
   it("recusa sem cabeçalho, sem chave ou com tamanho diferente", () => {
     expect(verifySignature(corpo, null, segredo)).toBe(false);
     expect(verifySignature(corpo, assinar(corpo), "")).toBe(false);

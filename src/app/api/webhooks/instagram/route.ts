@@ -97,7 +97,8 @@ export async function POST(req: NextRequest) {
   const raw = await req.text();
   const sig = req.headers.get("x-hub-signature-256");
 
-  if (!verifySignature(raw, sig, env.metaAppSecret)) {
+  if (!verifySignature(raw, sig, [env.metaAppSecret, env.metaWebhookSecret])) {
+    console.error("webhook recusado: assinatura não bate com META_APP_SECRET nem META_WEBHOOK_SECRET");
     return new Response("Invalid signature", { status: 401 });
   }
 

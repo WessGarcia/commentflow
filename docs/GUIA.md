@@ -288,7 +288,8 @@ avisa para conectar de novo.
    story, menção no story ou reação no direct.
 2. Preencha:
    - **Nome da automação:** `Teste`
-   - **Onde:** Todos os posts
+   - **Onde:** Todos os posts (ou **Um post específico** e toque no post ou
+     reel na lista das suas publicações recentes)
    - **Quando:** Comentar a palavra-chave
    - **Palavras-chave:** `quero` (uma por linha)
    - **Resposta pública no comentário:** `Te mandei no direct! 💜`
@@ -330,7 +331,7 @@ avisa para conectar de novo.
 | Volta com "estado-invalido" | Você clicou em Conectar pelo `localhost`. Abra o painel pelo **endereço público** e tente de novo. |
 | Volta com "sem-conta-profissional" | O Instagram não é profissional. Revise a Etapa 1 e conecte de novo. |
 | Volta com "falha-no-token" | O ID ou a chave do `.env` não são os do **app do Instagram** (Etapa 5), ou o endereço da Etapa 6 está diferente. |
-| Comentam e nada aparece em Comentários | Os avisos não estão chegando. Confira: app **Ao vivo** (Etapa 8), campo `comments` assinado (Etapa 7), túnel ainda aberto e com o mesmo endereço, perfil **público**. Depois clique em Conectar Instagram de novo. |
+| Comentam e nada aparece em Comentários | Os avisos não estão chegando. Confira: app **Ao vivo** (Etapa 8), campo `comments` assinado (Etapa 7), túnel ainda aberto e com o mesmo endereço, perfil **público**. Sem a permissão de comentários aprovada na Análise, a conta **conectada** precisa ser **Testador do Instagram** (*Funções do app*). Depois clique em Conectar Instagram de novo. Se o registro do painel disser "webhook recusado", cole a chave de *Configurações → Básico* em `META_WEBHOOK_SECRET` no `.env`. |
 | Aparece em Comentários como **Com erro** | O comentário chegou, mas a Meta recusou a resposta. Conecte o Instagram de novo, aceitando **todas** as permissões. |
 | A resposta pública sai, o direct não | Ative **"Permitir acesso às mensagens"** (Etapa 1, item 3). Cada comentário aceita **um** direct automático, e só se o comentário tiver até 7 dias. |
 | Os botões do direct não respondem | Assine os campos `messages` e `messaging_postbacks` (Etapa 7). |

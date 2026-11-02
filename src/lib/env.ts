@@ -13,6 +13,10 @@ export const env = {
   get metaAppSecret() {
     return configMeta.appSecret || process.env.META_APP_SECRET || "";
   },
+  /** Optional second key that may sign the webhook (Settings > Basic). */
+  get metaWebhookSecret() {
+    return process.env.META_WEBHOOK_SECRET || "";
+  },
   get metaRedirectUri() {
     if (configMeta.endereco) return `${configMeta.endereco}/api/auth/meta/callback`;
     return process.env.META_REDIRECT_URI ?? "";

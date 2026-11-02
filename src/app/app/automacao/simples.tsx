@@ -6,6 +6,7 @@ import { ArrowRight, AtSign, Check, ChevronLeft, ChevronRight, Hash, Heart, Inst
 import { GATILHOS, TIPOS, type TipoGatilho } from "@/lib/gatilhos";
 import { faltaNoPasso, nomeSugerido, payloadDoSimples, simplesEmBranco, type Simples } from "@/lib/modelos";
 import { Avatar, Pill, Toggle } from "../_ui/ui";
+import { SeletorPost } from "./seletor-post";
 
 /**
  * MODO SIMPLES (como na Mandei): três perguntas e a automação está no ar.
@@ -126,7 +127,7 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
               ) : (
               <div style={{ marginTop: 20 }}>
                 <div className="m-label" style={{ display: "flex", alignItems: "center", gap: 5 }}><Hash size={13} /> Palavras-chave</div>
-                <div className="m-hint" style={{ marginBottom: 8, marginTop: 0 }}>Quem {s.tipo === "story_resposta" ? "responder o story com" : "comentar"} uma delas entra na automação. Digite e aperte Enter. Vale se o texto contiver a palavra, sem diferenciar maiúsculas.</div>
+                <div className="m-hint" style={{ marginBottom: 8, marginTop: 0 }}>Quem {s.tipo === "story_resposta" ? "responder o story com" : "comentar"} uma delas entra na automação. Digite e aperte Enter. Vale se o texto contiver a palavra, sem diferenciar maiúsculas nem acentos.</div>
                 {!s.qualquer && <Palavras valor={s.palavras} onChange={(v) => mudar((x) => { x.palavras = v; })} />}
                 <label className="flex items-center cursor-pointer" style={{ gap: 8, marginTop: 10, fontSize: 13 }}>
                   <input type="checkbox" checked={s.qualquer} onChange={(e) => mudar((x) => { x.qualquer = e.target.checked; })} style={{ accentColor: "var(--accent)" }} />
@@ -140,12 +141,11 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
                 <div className="m-label" style={{ display: "flex", alignItems: "center", gap: 5 }}><Instagram size={13} /> Em qual publicação</div>
                 <div className="flex flex-col" style={{ gap: 6, marginTop: 8 }}>
                   <Opcao ativa={!s.postId && !postManual(s)} onClick={() => mudar((x) => { x.postId = ""; })} t="Todas as publicações" sub="Vale em qualquer post ou reel da conta" />
-                  <Opcao ativa={postManual(s)} onClick={() => mudar((x) => { x.postId = x.postId || " "; })} t="Um post específico" sub="Só no post que você escolher pelo ID" />
+                  <Opcao ativa={postManual(s)} onClick={() => mudar((x) => { x.postId = x.postId || " "; })} t="Um post específico" sub="Só no post ou reel que você escolher" />
                 </div>
                 {postManual(s) && (
                   <div style={{ marginTop: 10 }}>
-                    <input className="m-input" value={s.postId.trim()} onChange={(e) => mudar((x) => { x.postId = e.target.value || " "; })} placeholder="ID do post no Instagram" aria-label="ID do post" />
-                    <div className="m-hint">O ID aparece em Comentários, em cada comentário recebido daquele post.</div>
+                    <SeletorPost valor={s.postId} onChange={(id) => mudar((x) => { x.postId = id || " "; })} />
                   </div>
                 )}
               </div>
@@ -345,8 +345,10 @@ function Telefone({ s, usuario }: { s: Simples; usuario: string | null }) {
 
             {s.pergunta.trim() && s.entrega.trim() && (
               <>
-                <Balao>{troca(s.pergunta)}</Balao>
-                <div className="text-center" style={{ border: "1px solid var(--accent)", color: "var(--accent)", borderRadius: 12, padding: "9px 12px", fontSize: 12.5, fontWeight: 700, maxWidth: "88%" }}>{s.botao || "Quero"}</div>
+                <Balao>
+                  {troca(s.pergunta)}
+                  <div className="text-center" style={{ marginTop: 10, background: "var(--bg-card)", borderRadius: 10, padding: "8px 12px", fontWeight: 700, whiteSpace: "normal" }}>{s.botao || "Quero"}</div>
+                </Balao>
                 <div className="flex items-center" style={{ gap: 7, fontSize: 11, color: "var(--m-text-dim)", margin: "2px 0" }}>
                   <span style={{ height: 1, flex: 1, background: "var(--m-row-border)" }} />a pessoa toca no botão<span style={{ height: 1, flex: 1, background: "var(--m-row-border)" }} />
                 </div>

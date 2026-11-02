@@ -28,6 +28,10 @@ Painel (/app) ──OAuth──▶ /api/auth/meta/* ──▶ Account (token cri
   passo alvo sem precisar de sessão no servidor.
 - **Graph API** (`src/lib/meta.ts`): `replyToComment` e `sendDm` (recipient por
   `comment_id` ou `id`), com suporte a `quick_replies`.
+  `listarPublicacoes` (`GET /me/media`) alimenta `/api/publicacoes`: o seletor
+  de post da automação (`automacao/seletor-post.tsx`, nos modos simples e
+  avançado) mostra as publicações recentes para tocar; o ID escolhido vai para
+  `mediaId`, e colar o ID à mão continua valendo.
 - **OAuth** (`src/app/api/auth/meta/*`): login do Instagram (API do Instagram
   com login do Instagram, `graph.instagram.com`), troca de code por token
   (curto → 60 dias), `/me` (o `user_id` profissional é o id dos webhooks),
@@ -47,8 +51,15 @@ Painel (/app) ──OAuth──▶ /api/auth/meta/* ──▶ Account (token cri
 
 ## Fluxo multi-passo (dmFlow)
 JSON: `{ entry, steps: { id: { text, quickReplies: [{ title, next }] } } }`.
-Cada botão vira um quick reply cujo payload é `qr::<flowId>::<stepId>`. Ao ser
-tocado, `processMessaging` resolve e envia o passo `next`.
+Até 3 botões de até 20 letras, com texto de até 640, vão dentro do balão
+(button template, postback); acima disso viram quick replies. O payload é
+`qr::<flowId>::<stepId>` nos dois casos. Ao ser tocado, `processMessaging`
+resolve e envia o passo `next`. No construtor visual, botões sem imagem também
+saem como button template; com imagem, generic template (título até 80).
+
+Palavras-chave casam por "contém", sem diferenciar maiúsculas nem acentos
+(`lib/texto.ts`). O webhook aceita assinatura com `META_APP_SECRET` ou
+`META_WEBHOOK_SECRET` (a Meta pode assinar com a chave de Configurações > Básico).
 
 ## Decisões
 - Estado do fluxo no payload (sem sessão server-side) → simples e resiliente.
