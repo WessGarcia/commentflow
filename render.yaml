@@ -38,3 +38,4 @@ services:
 databases:
   - name: commentflow-db
     plan: 0.1c-256mb
+    diskSizeGB: 1
