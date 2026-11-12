@@ -17,6 +17,10 @@ export const env = {
   get metaWebhookSecret() {
     return process.env.META_WEBHOOK_SECRET || "";
   },
+  /** Configuração do Login do Facebook para Empresas (Casos de uso → Configurações), usada no login unificado. */
+  get metaConfigId() {
+    return process.env.META_CONFIG_ID ?? "";
+  },
   get metaRedirectUri() {
     if (configMeta.endereco) return `${configMeta.endereco}/api/auth/meta/callback`;
     return process.env.META_REDIRECT_URI ?? "";
@@ -40,12 +44,12 @@ export const env = {
   get igUserId() {
     return process.env.IG_USER_ID ?? "";
   },
-  /** Graph API do login do Instagram. Só para testes: aponta para outro servidor. */
+  /** Graph API do login unificado da Meta. Só para testes: aponta para outro servidor. */
   get graphBaseUrl() {
-    return (process.env.GRAPH_BASE_URL || "https://graph.instagram.com").replace(/\/$/, "");
+    return (process.env.GRAPH_BASE_URL || "https://graph.facebook.com").replace(/\/$/, "");
   },
   get graphVersion() {
-    return process.env.GRAPH_API_VERSION ?? "v26.0";
+    return process.env.GRAPH_API_VERSION || "v27.0";
   },
   get encryptionKey() {
     return process.env.ENCRYPTION_KEY ?? "";

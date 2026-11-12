@@ -58,7 +58,7 @@ export function buildMessage(text: string, quickReplies?: QuickReply[]) {
 
 /**
  * Public reply to a comment.
- * POST /{ig-comment-id}/replies  (needs instagram_business_manage_comments)
+ * POST /{ig-comment-id}/replies  (needs instagram_manage_comments)
  */
 export function replyToComment(
   creds: IgCredentials,
@@ -73,7 +73,8 @@ export function replyToComment(
 /**
  * Send a DM. recipient is either { comment_id } (private reply to a comment)
  * or { id } (a message to a user PSID, e.g. after a quick-reply tap).
- * POST /me/messages  (needs instagram_business_manage_messages)
+ * POST /{ig-id}/messages  (needs instagram_manage_messages). No login unificado o token
+ * é de usuário do sistema, então /me não é a conta do Instagram: vai o id dela.
  */
 export function sendDm(
   creds: IgCredentials,
@@ -81,7 +82,7 @@ export function sendDm(
   text: string,
   quickReplies?: QuickReply[],
 ): Promise<GraphResult> {
-  return graphPost(`${base()}/me/messages`, creds.accessToken, {
+  return graphPost(`${base()}/${creds.igUserId}/messages`, creds.accessToken, {
     recipient,
     messaging_type: "RESPONSE",
     message: buildMessage(text, quickReplies),
@@ -94,7 +95,7 @@ export function sendRaw(
   recipient: { comment_id?: string; id?: string },
   message: Record<string, unknown>,
 ): Promise<GraphResult> {
-  return graphPost(`${base()}/me/messages`, creds.accessToken, {
+  return graphPost(`${base()}/${creds.igUserId}/messages`, creds.accessToken, {
     recipient,
     messaging_type: "RESPONSE",
     message,
@@ -133,7 +134,7 @@ export function sendPrivateReply(
 
 /**
  * Hide / unhide a comment on your own media.
- * POST /{ig-comment-id}?hide=true|false  (needs instagram_business_manage_comments)
+ * POST /{ig-comment-id}?hide=true|false  (needs instagram_manage_comments)
  */
 export function hideComment(creds: IgCredentials, commentId: string, hide: boolean): Promise<GraphResult> {
   return graphPost(`${base()}/${commentId}`, creds.accessToken, { hide });
@@ -193,7 +194,7 @@ const midiasSchema = z.object({
   ),
 });
 
-/** Resposta do GET /me/media em publicações para o seletor; null se a Meta mandou algo fora do formato. */
+/** Resposta do GET /{ig-id}/media em publicações para o seletor; null se a Meta mandou algo fora do formato. */
 export function publicacoesDaResposta(body: unknown): Publicacao[] | null {
   const r = midiasSchema.safeParse(body);
   if (!r.success) return null;
@@ -208,11 +209,11 @@ export function publicacoesDaResposta(body: unknown): Publicacao[] | null {
 
 /**
  * As publicações mais recentes da conta (posts e reels), para escolher o post de uma automação.
- * GET /me/media  (instagram_business_basic). erro "token" = conexão vencida, precisa conectar de novo.
+ * GET /{ig-id}/media  (instagram_basic). erro "token" = conexão vencida, precisa conectar de novo.
  */
 export async function listarPublicacoes(creds: IgCredentials, limite = 24): Promise<{ itens: Publicacao[] } | { erro: "token" | "falha" }> {
   try {
-    const url = `${base()}/me/media?` + new URLSearchParams({
+    const url = `${base()}/${creds.igUserId}/media?` + new URLSearchParams({
       fields: "id,caption,media_type,media_product_type,media_url,thumbnail_url,timestamp",
       limit: String(limite),
       access_token: creds.accessToken,
