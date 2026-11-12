@@ -1,20 +1,27 @@
-import { describe, expect, it } from "vitest";
-import { precisaRenovar } from "./credentials";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-const DIA = 86_400_000;
-const agora = Date.UTC(2026, 10, 1);
+const findFirst = vi.fn();
+vi.mock("@/lib/db", () => ({ prisma: { account: { findFirst } } }));
+vi.mock("@/lib/crypto", () => ({ decryptSecret: (v?: string | null) => v ?? "", encryptSecret: (v: string) => v }));
 
-describe("precisaRenovar (token de 60 dias do login do Instagram)", () => {
-  it("token novo (vence em 59 dias) não renova", () => {
-    expect(precisaRenovar(new Date(agora + 59 * DIA), agora)).toBe(false);
+const { getActiveCredentials } = await import("./credentials");
+
+afterEach(() => vi.restoreAllMocks());
+
+describe("credenciais da conta conectada (login unificado)", () => {
+  it("usa o token da conta e o id do Instagram, sem tentar renovar", async () => {
+    const f = vi.spyOn(globalThis, "fetch");
+    // token de usuário do sistema perto de "vencer": mesmo assim não chama a Meta
+    findFirst.mockResolvedValue({ id: "a", igUserId: "1789", accessToken: "tok", tokenExpiraEm: new Date(Date.now() + 86_400_000) });
+    expect(await getActiveCredentials()).toEqual({ accessToken: "tok", igUserId: "1789" });
+    expect(f).not.toHaveBeenCalled();
   });
-  it("faltando menos de 30 dias, renova", () => {
-    expect(precisaRenovar(new Date(agora + 29 * DIA), agora)).toBe(true);
-  });
-  it("já vencido não renova (a Meta recusa; precisa reconectar)", () => {
-    expect(precisaRenovar(new Date(agora - DIA), agora)).toBe(false);
-  });
-  it("sem data (token colado à mão no .env) não renova", () => {
-    expect(precisaRenovar(null, agora)).toBe(false);
+
+  it("sem conta conectada, cai no token do .env", async () => {
+    findFirst.mockResolvedValue(null);
+    vi.stubEnv("IG_ACCESS_TOKEN", "manual");
+    vi.stubEnv("IG_USER_ID", "42");
+    expect(await getActiveCredentials()).toEqual({ accessToken: "manual", igUserId: "42" });
+    vi.unstubAllEnvs();
   });
 });

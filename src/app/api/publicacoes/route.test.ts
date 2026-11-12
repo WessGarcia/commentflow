@@ -28,7 +28,7 @@ describe("publicações para escolher o post da automação", () => {
         { id: "222", legenda: "", imagem: "foto.jpg", reels: false, quando: null },
       ],
     });
-    expect(String(f.mock.calls[0][0])).toContain("/me/media?");
+    expect(String(f.mock.calls[0][0])).toContain("/1/media?");
   });
 
   it("token vencido vira aviso para conectar de novo", async () => {

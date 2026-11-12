@@ -119,9 +119,9 @@ export function Assistente({ estado, origem, token, faltaApp }: { estado: Estado
       id: "chaves", titulo: "Cole o ID e a chave secreta do app", feito: estado.meta.appId && estado.meta.appSecret, icone: <KeyRound size={17} />,
       corpo: (
         <>
-          <div style={{ fontSize: 13, color: "var(--m-text-body)", marginTop: 6 }}>Em <b>Configuração da API com login do Instagram</b>, no topo: copie o <b>ID do app do Instagram</b> e a <b>Chave secreta do app do Instagram</b> (clique em Mostrar). Não é o ID de Configurações → Básico. Ficam guardadas criptografadas e nunca voltam para esta tela.</div>
+          <div style={{ fontSize: 13, color: "var(--m-text-body)", marginTop: 6 }}>Em <b>Configurações do app → Básico</b>: copie o <b>ID do app</b> e a <b>Chave secreta do app</b> (clique em Mostrar). São as do app da Meta, usadas no login unificado. Ficam guardadas criptografadas e nunca voltam para esta tela.</div>
           <div className="flex flex-col" style={{ gap: 8, marginTop: 10 }}>
-            <input className="m-input" value={appId} onChange={(e) => setAppId(e.target.value)} placeholder={estado.meta.appId ? "ID já salvo (cole para trocar)" : "ID do app do Instagram (só números)"} aria-label="ID do app do Instagram" inputMode="numeric" />
+            <input className="m-input" value={appId} onChange={(e) => setAppId(e.target.value)} placeholder={estado.meta.appId ? "ID já salvo (cole para trocar)" : "ID do app da Meta (só números)"} aria-label="ID do app da Meta" inputMode="numeric" />
             <input className="m-input" value={segredo} onChange={(e) => setSegredo(e.target.value)} placeholder={estado.meta.appSecret ? "Chave já salva (cole para trocar)" : "Chave secreta (32 letras e números)"} aria-label="chave secreta do app" type="password" autoComplete="off" />
             <button type="button" className="m-btn" style={{ alignSelf: "flex-start" }} disabled={(!appId.trim() && !segredo.trim()) || ocupado === "chaves"} onClick={() => salvar("chaves", { ...(appId.trim() ? { appId: appId.trim() } : {}), ...(segredo.trim() ? { appSecret: segredo.trim() } : {}) })}>
               {ocupado === "chaves" ? <Loader2 size={15} className="animate-spin" /> : <Lock size={15} />} Salvar as chaves
