@@ -28,17 +28,21 @@ Painel (/app) ──OAuth──▶ /api/auth/meta/* ──▶ Account (token cri
   passo alvo sem precisar de sessão no servidor.
 - **Graph API** (`src/lib/meta.ts`): `replyToComment` e `sendDm` (recipient por
   `comment_id` ou `id`), com suporte a `quick_replies`.
-  `listarPublicacoes` (`GET /me/media`) alimenta `/api/publicacoes`: o seletor
+  `listarPublicacoes` (`GET /{ig-id}/media`) alimenta `/api/publicacoes`: o seletor
   de post da automação (`automacao/seletor-post.tsx`, nos modos simples e
   avançado) mostra as publicações recentes para tocar; o ID escolhido vai para
   `mediaId`, e colar o ID à mão continua valendo.
-- **OAuth** (`src/app/api/auth/meta/*`): login do Instagram (API do Instagram
-  com login do Instagram, `graph.instagram.com`), troca de code por token
-  (curto → 60 dias), `/me` (o `user_id` profissional é o id dos webhooks),
-  `POST /me/subscribed_apps` e persistência do token (criptografado).
+- **OAuth** (`src/app/api/auth/meta/*`): login unificado da Meta
+  (`www.facebook.com/dialog/oauth` com `client_id` + `config_id`, sem `scope`),
+  troca do code em `graph.facebook.com/{versão}/oauth/access_token` (token de
+  usuário do sistema, sem token longo nem refresh),
+  `GET /me/assigned_instagram_accounts` (o `id` é o dos webhooks),
+  `POST /{ig-id}/subscribed_apps` (`comments,messages,messaging_postbacks`) e
+  persistência do token (criptografado). Todas as chamadas vão para
+  `graph.facebook.com`; DMs em `POST /{ig-id}/messages`.
 - **Credenciais** (`src/lib/credentials.ts`): usa o token da conta conectada
-  mais recente (descriptografado), com fallback para o `.env`; renova o token
-  quando faltam menos de 30 dias (`refresh_access_token`).
+  mais recente (descriptografado), com fallback para o `.env`. O token do
+  login unificado não é renovado: se a Meta recusar, o painel pede para conectar de novo.
 - **Painel** (`src/app/app/*`): server components para dados + client
   components para interação (editor de fluxos, conexão).
 
