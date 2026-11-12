@@ -13,7 +13,7 @@ const GUIA = "https://github.com/gabrieltabarkiewicz/commentflow/blob/main/docs/
 function avisoMeta(meta?: string) {
   if (!meta) return null;
   if (meta.startsWith("conectado:")) return { ok: true, texto: `${meta.split(":")[1] ?? "1"} conta(s) conectada(s).` };
-  if (meta.startsWith("sem-avisos:")) return { ok: false, texto: "Conta conectada, mas a Meta recusou ligar os avisos. Confira se os webhooks estão configurados no app (Configuração da API com login do Instagram) e conecte de novo." };
+  if (meta.startsWith("sem-avisos:")) return { ok: false, texto: "Conta conectada, mas a Meta recusou ligar os avisos. Confira se os webhooks estão configurados no app da Meta e conecte de novo." };
   return { ok: false, texto: `Não foi possível conectar: ${meta.replace(/^erro:/, "")}.` };
 }
 
@@ -78,9 +78,9 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
           <div className="m-label">Endereço do webhook</div>
           <Copiar texto={`${origem}/api/webhooks/instagram`} />
           <div className="m-hint">Cadastre na Meta e assine os campos <b>comments</b> e <b>messages</b>. A Meta só chama endereço público com https: no computador, use um túnel.</div>
-          <div className="m-label" style={{ marginTop: 16 }}>Volta do login do Instagram</div>
+          <div className="m-label" style={{ marginTop: 16 }}>Volta do login da Meta</div>
           <Copiar texto={c.meta.redirect ?? `${origem}/api/auth/meta/callback`} />
-          <div className="m-hint">Cadastre em API do Instagram &gt; Configurar o login da empresa no Instagram &gt; URL de redirecionamento OAuth.</div>
+          <div className="m-hint">Cadastre em Login do Facebook para Empresas &gt; Configurações &gt; URIs de redirecionamento do OAuth válidos.</div>
         </Card>
 
         <Card>
